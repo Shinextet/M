@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verdant — Personal Savings Tracker</title>
+  <!-- Google Fonts: Instrument Serif (display) + DM Sans (body) for a premium, editorial feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+/* ============================================================
+   VERDANT — Personal Savings Tracker
+   style.css
+   
+   Color Palette:
+     Sage Green:   #A8D5BA  (accent / active states)
+     Sage Light:   #E8F5EE  (soft fills)
+     Sage Dark:    #5C9E78  (hover, dark accents)
+     Cream White:  #F8F9FA  (page background)
+     Card White:   #FFFFFF  (card surfaces)
+     Charcoal:     #2C2F3A  (primary text)
+     Muted Grey:   #6B7280  (secondary text)
+     Border:       #E5E9EF  (subtle borders)
+     Warning:      #F59E0B  (yellow accents)
+     Danger:       #EF4444  (red withdrawals)
+   ============================================================ */
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sage:        #A8D5BA;
+  --sage-light:  #E8F5EE;
+  --sage-mid:    #78BF97;
+  --sage-dark:   #4E8C6A;
+  --cream:       #F8F9FA;
+  --white:       #FFFFFF;
+  --charcoal:    #2C2F3A;
+  --text-muted:  #6B7280;
+  --text-hint:   #9CA3AF;
+  --border:      #E5E9EF;
+  --border-dark: #D1D8E0;
+  --warning:     #F59E0B;
+  --danger:      #EF4444;
+  --danger-soft: #FEE2E2;
+  --sidebar-w:   240px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --shadow-sm:   0 1px 4px rgba(44,47,58,0.06), 0 2px 12px rgba(44,47,58,0.04);
+  --shadow-md:   0 4px 16px rgba(44,47,58,0.08), 0 1px 4px rgba(44,47,58,0.04);
+  --shadow-lg:   0 8px 32px rgba(44,47,58,0.10);
+  --transition:  all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  display: flex;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 99px; }
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 16px;
+  z-index: 200;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Logo mark */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+  margin-bottom: 36px;
+}
+.logo-mark {
+  width: 34px; height: 34px;
+  background: var(--sage);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  color: var(--sage-dark);
+  font-weight: 400;
+  flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  color: var(--charcoal);
+  letter-spacing: -0.3px;
+}
+
+/* Nav items */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 400;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.nav-item:hover {
+  background: var(--sage-light);
+  color: var(--sage-dark);
+}
+.nav-item.active {
+  background: var(--sage-light);
+  color: var(--sage-dark);
+  font-weight: 500;
+}
+.nav-item.active .nav-icon { stroke: var(--sage-dark); }
+.nav-icon {
+  width: 18px; height: 18px;
+  stroke: var(--text-hint);
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.nav-item:hover .nav-icon { stroke: var(--sage-dark); }
+
+/* Profile at bottom of sidebar */
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-top: 16px;
+}
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--sage);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 500;
+  color: var(--sage-dark);
+  flex-shrink: 0;
+}
+.profile-info { display: flex; flex-direction: column; gap: 1px; }
+.profile-name { font-size: 13px; font-weight: 500; color: var(--charcoal); }
+.profile-plan { font-size: 11px; color: var(--sage-dark); }
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: calc(100vw - var(--sidebar-w));
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 32px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--charcoal);
+  flex: 1;
+}
+.topbar-date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.add-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--sage);
+  color: var(--sage-dark);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+.add-btn svg { width: 14px; height: 14px; }
+.add-btn:hover { background: var(--sage-mid); transform: translateY(-1px); }
+.mobile-menu-btn {
+  display: none;
+  background: none; border: none; cursor: pointer;
+  padding: 4px; color: var(--charcoal);
+}
+.mobile-menu-btn svg { width: 22px; height: 22px; }
+
+/* ── Sections ── */
+.section {
+  display: none;
+  padding: 32px 32px 48px;
+  animation: fadeUp 0.3s ease;
+}
+.section.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Greeting */
+.section-greeting { margin-bottom: 28px; }
+.section-greeting h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--charcoal);
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.section-greeting p { font-size: 14px; color: var(--text-muted); }
+
+/* ── KPI Cards ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.kpi-card.kpi-accent {
+  background: linear-gradient(135deg, var(--sage) 0%, var(--sage-mid) 100%);
+  border-color: var(--sage-mid);
+}
+.kpi-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.kpi-accent .kpi-label { color: var(--sage-dark); }
+.kpi-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: var(--charcoal);
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.kpi-accent .kpi-value { color: var(--sage-dark); }
+.kpi-trend { font-size: 12px; color: var(--text-muted); }
+.kpi-trend.positive { color: var(--sage-dark); }
+.kpi-accent .kpi-trend { color: var(--sage-dark); opacity: 0.8; }
+
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+  transition: var(--transition);
+}
+.card:last-child { margin-bottom: 0; }
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--charcoal);
+}
+.card-badge {
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--sage-light);
+  color: var(--sage-dark);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.card-link {
+  font-size: 13px;
+  color: var(--sage-dark);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.card-link:hover { color: var(--sage-mid); }
+
+/* ── Dashboard Grid ── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* ── Monthly Progress Bars ── */
+.progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.progress-month {
+  display: grid;
+  grid-template-columns: 36px 1fr 60px;
+  align-items: center;
+  gap: 12px;
+}
+.progress-month-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.progress-track {
+  height: 8px;
+  background: var(--cream);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--sage) 0%, var(--sage-mid) 100%);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.progress-amount {
+  font-size: 12px;
+  color: var(--charcoal);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* ── Goal List (Snapshot) ── */
+.goal-list { display: flex; flex-direction: column; gap: 14px; }
+.goal-item {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+}
+.goal-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.goal-item-name { font-size: 13px; font-weight: 500; color: var(--charcoal); }
+.goal-item-pct {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sage-dark);
+  white-space: nowrap;
+}
+.goal-item-amounts {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.goal-track {
+  height: 6px;
+  background: var(--cream);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.goal-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--sage) 0%, var(--sage-mid) 100%);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Transactions ── */
+.tx-list { display: flex; flex-direction: column; gap: 2px; }
+.tx-list-full { max-height: 500px; overflow-y: auto; }
+.tx-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.tx-row:hover { background: var(--cream); }
+.tx-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.tx-icon.deposit { background: var(--sage-light); }
+.tx-icon.withdrawal { background: var(--danger-soft); }
+.tx-info {}
+.tx-note { font-size: 13px; font-weight: 500; color: var(--charcoal); }
+.tx-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.tx-amount { font-size: 14px; font-weight: 500; text-align: right; }
+.tx-amount.deposit { color: var(--sage-dark); }
+.tx-amount.withdrawal { color: var(--danger); }
+
+/* ── Filter row ── */
+.filter-row select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--charcoal);
+  background: var(--white);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+}
+.filter-row select:focus { border-color: var(--sage); }
+
+/* ============================================================
+   GOALS SECTION
+   ============================================================ */
+/* Calculator */
+.calculator-card { margin-bottom: 24px; }
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.calc-field { display: flex; flex-direction: column; gap: 6px; }
+.calc-field label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.calc-field input,
+.calc-field select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--charcoal);
+  background: var(--white);
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+.calc-field input:focus,
+.calc-field select:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(168,213,186,0.2); }
+
+/* Calculation result */
+.calc-result {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  animation: fadeUp 0.3s ease;
+}
+.calc-result-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.calc-stat { display: flex; flex-direction: column; gap: 4px; }
+.calc-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.calc-stat-value { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--charcoal); }
+
+.calc-progress-bar {
+  height: 10px;
+  background: var(--cream);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.calc-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--sage) 0%, var(--sage-mid) 100%);
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.calc-message {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Goals Grid */
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.goal-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.goal-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.goal-card-emoji { font-size: 28px; margin-bottom: 10px; display: block; }
+.goal-card-name { font-size: 15px; font-weight: 500; color: var(--charcoal); margin-bottom: 4px; }
+.goal-card-dates { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+.goal-card-amounts {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+.goal-card-amounts strong { color: var(--charcoal); }
+.goal-card-pct {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  color: var(--sage-dark);
+  float: right;
+  line-height: 1;
+}
+.goal-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.goal-action-btn {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 7px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+}
+.goal-action-btn:hover { border-color: var(--sage); color: var(--sage-dark); background: var(--sage-light); }
+.goal-action-btn.delete:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+/* ============================================================
+   ANALYTICS SECTION
+   ============================================================ */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.analytics-card { margin-bottom: 0 !important; }
+
+/* Bar chart */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 160px;
+  padding-top: 16px;
+}
+.bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  background: var(--sage);
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  cursor: pointer;
+}
+.bar:hover { background: var(--sage-mid); }
+.bar-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.bar-val { font-size: 10px; color: var(--sage-dark); font-weight: 500; }
+
+/* Donut chart (CSS-only) */
+.donut-chart-wrap { display: flex; flex-direction: column; gap: 12px; }
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.donut-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.donut-legend-name { font-size: 13px; color: var(--charcoal); flex: 1; }
+.donut-legend-val { font-size: 13px; font-weight: 500; color: var(--charcoal); }
+.donut-legend-pct { font-size: 11px; color: var(--text-muted); min-width: 36px; text-align: right; }
+
+/* Projection chart */
+.projection-chart {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.projection-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: 1fr auto;
+  gap: 0 8px;
+  min-width: 600px;
+  height: 140px;
+  align-items: end;
+}
+.proj-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.proj-bar {
+  width: 28px;
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: height 0.6s ease;
+}
+.proj-bar.actual { background: var(--sage); }
+.proj-bar.projected { background: var(--sage-light); border: 1px dashed var(--sage); }
+.proj-label { font-size: 10px; color: var(--text-muted); text-align: center; }
+.proj-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+.proj-legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-muted);
+}
+.proj-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* ============================================================
+   SETTINGS SECTION
+   ============================================================ */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+.settings-grid .card { margin-bottom: 0; }
+.settings-form { display: flex; flex-direction: column; gap: 16px; }
+
+/* Toggle switches */
+.toggle-list { display: flex; flex-direction: column; gap: 16px; }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--charcoal);
+}
+.toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; inset: 0;
+  background: var(--border-dark);
+  border-radius: 99px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.slider::before {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  left: 3px; bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+.toggle input:checked + .slider { background: var(--sage); }
+.toggle input:checked + .slider::before { transform: translateX(18px); }
+
+/* Backend info */
+.backend-note { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+.code-block {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  color: var(--charcoal);
+}
+.code-block code { color: var(--charcoal); }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.primary-btn {
+  background: var(--sage);
+  color: var(--sage-dark);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.primary-btn:hover { background: var(--sage-mid); transform: translateY(-1px); }
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 22px;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+}
+.secondary-btn:hover { border-color: var(--border-dark); color: var(--charcoal); }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(44,47,58,0.4);
+  backdrop-filter: blur(3px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 440px;
+  animation: fadeUp 0.25s ease;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--charcoal);
+}
+.modal-close {
+  background: none; border: none;
+  font-size: 22px; color: var(--text-muted);
+  cursor: pointer; line-height: 1;
+  transition: var(--transition);
+}
+.modal-close:hover { color: var(--charcoal); }
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 22px;
+  justify-content: flex-end;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--charcoal);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   MOBILE OVERLAY
+   ============================================================ */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(44,47,58,0.4);
+  z-index: 150;
+}
+
+/* ============================================================
+   RESPONSIVE — Tablet & Mobile
+   ============================================================ */
+@media (max-width: 900px) {
+  .dashboard-grid,
+  .analytics-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  :root { --sidebar-w: 0px; }
+
+  .sidebar {
+    width: 240px;
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar-overlay.open { display: block; }
+
+  .main-content { margin-left: 0; max-width: 100vw; }
+
+  .mobile-menu-btn { display: flex; }
+  .topbar { padding: 14px 16px; }
+  .topbar-date { display: none; }
+  .add-btn span { display: none; } /* icon only on small screens */
+
+  .section { padding: 20px 16px 40px; }
+  .section-greeting h1 { font-size: 22px; }
+
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kpi-value { font-size: 22px; }
+
+  .calculator-grid { grid-template-columns: 1fr; }
+  .goals-grid { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+
+  .modal { max-width: 100%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-overlay { align-items: flex-end; }
+}
+
+@media (max-width: 440px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ========== MOBILE OVERLAY (closes sidebar on mobile) ========== -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ========== SIDEBAR NAVIGATION ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">V</span>
+      <span class="logo-text">Verdant</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="showSection('dashboard', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('goals', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="12" y1="23" x2="12" y2="21"/></svg>
+        <span>Goals</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('transactions', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3L21 7L17 11"/><path d="M3 7H21"/><path d="M7 21L3 17L7 13"/><path d="M21 17H3"/></svg>
+        <span>Transactions</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('analytics', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Analytics</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('settings', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-profile">
+      <div class="avatar">AK</div>
+      <div class="profile-info">
+        <span class="profile-name">Alex Kim</span>
+        <span class="profile-plan">Pro Plan</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT AREA ========== -->
+  <main class="main-content">
+
+    <!-- ── TOPBAR ── -->
+    <header class="topbar">
+      <button class="mobile-menu-btn" onclick="openSidebar()" aria-label="Open navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <span class="topbar-date" id="topbarDate"></span>
+        <button class="add-btn" onclick="openDepositModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Deposit
+        </button>
+      </div>
+    </header>
+
+    <!-- ════════════════════════════════════════
+         SECTION: DASHBOARD
+    ════════════════════════════════════════ -->
+    <section class="section active" id="section-dashboard">
+
+      <!-- Greeting -->
+      <div class="section-greeting">
+        <h1>Good <span id="timeOfDay">morning</span>, Alex 👋</h1>
+        <p>Here's how your savings are growing this month.</p>
+      </div>
+
+      <!-- KPI Cards Row -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-accent">
+          <div class="kpi-label">Total Savings</div>
+          <div class="kpi-value" id="kpiTotal">$12,450.00</div>
+          <div class="kpi-trend positive">↑ 8.2% from last month</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Monthly Deposited</div>
+          <div class="kpi-value" id="kpiMonthly">$0.00</div>
+          <div class="kpi-trend neutral" id="kpiMonthlyTrend">This month</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">To Next Goal</div>
+          <div class="kpi-value" id="kpiToGoal">$7,550.00</div>
+          <div class="kpi-trend neutral" id="kpiGoalLabel">Emergency Fund</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Saving Rate</div>
+          <div class="kpi-value" id="kpiRate">24%</div>
+          <div class="kpi-trend positive">of monthly income</div>
+        </div>
+      </div>
+
+      <!-- Monthly Progress + Mini Goals side by side -->
+      <div class="dashboard-grid">
+
+        <!-- Monthly Progress Chart -->
+        <div class="card" id="progressCard">
+          <div class="card-header">
+            <h2 class="card-title">Monthly Progress</h2>
+            <span class="card-badge">2025</span>
+          </div>
+          <div class="progress-bars" id="progressBars">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Quick Goal Snapshot -->
+        <div class="card" id="goalSnapshotCard">
+          <div class="card-header">
+            <h2 class="card-title">Goal Snapshot</h2>
+            <a href="#" class="card-link" onclick="showSection('goals', null)">See all →</a>
+          </div>
+          <div class="goal-list" id="goalList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recent Transactions Preview -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Activity</h2>
+          <a href="#" class="card-link" onclick="showSection('transactions', null)">View all →</a>
+        </div>
+        <div class="tx-list" id="recentTxList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: GOALS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-goals">
+      <div class="section-greeting">
+        <h1>Savings Goals</h1>
+        <p>Define targets and track your progress toward each one.</p>
+      </div>
+
+      <!-- Goal Calculator -->
+      <div class="card calculator-card">
+        <div class="card-header">
+          <h2 class="card-title">Goal Calculator</h2>
+          <span class="card-badge">Live</span>
+        </div>
+        <div class="calculator-grid">
+          <div class="calc-field">
+            <label>Goal Name</label>
+            <input type="text" id="calcName" placeholder="e.g. New Car" />
+          </div>
+          <div class="calc-field">
+            <label>Target Amount ($)</label>
+            <input type="number" id="calcTarget" placeholder="25000" min="0" />
+          </div>
+          <div class="calc-field">
+            <label>Current Savings ($)</label>
+            <input type="number" id="calcCurrent" placeholder="5000" min="0" />
+          </div>
+          <div class="calc-field">
+            <label>Monthly Contribution ($)</label>
+            <input type="number" id="calcMonthly" placeholder="500" min="0" />
+          </div>
+        </div>
+        <button class="primary-btn" onclick="calculateGoal()">Calculate →</button>
+
+        <!-- Calculation Result -->
+        <div class="calc-result" id="calcResult" style="display:none;">
+          <div class="calc-result-row">
+            <div class="calc-stat">
+              <span class="calc-stat-label">Remaining</span>
+              <span class="calc-stat-value" id="calcRemaining">—</span>
+            </div>
+            <div class="calc-stat">
+              <span class="calc-stat-label">Months to Goal</span>
+              <span class="calc-stat-value" id="calcMonths">—</span>
+            </div>
+            <div class="calc-stat">
+              <span class="calc-stat-label">Progress</span>
+              <span class="calc-stat-value" id="calcPercent">—</span>
+            </div>
+            <div class="calc-stat">
+              <span class="calc-stat-label">Target Date</span>
+              <span class="calc-stat-value" id="calcDate">—</span>
+            </div>
+          </div>
+          <div class="calc-progress-bar">
+            <div class="calc-progress-fill" id="calcProgressFill"></div>
+          </div>
+          <p class="calc-message" id="calcMessage"></p>
+          <button class="secondary-btn" onclick="addGoalFromCalc()">Add to My Goals →</button>
+        </div>
+      </div>
+
+      <!-- Goals List -->
+      <div class="goals-grid" id="goalsGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: TRANSACTIONS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-transactions">
+      <div class="section-greeting">
+        <h1>Transactions</h1>
+        <p>Every deposit and withdrawal, in one place.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">All Activity</h2>
+          <div class="filter-row">
+            <select id="txFilter" onchange="renderTransactions()">
+              <option value="all">All</option>
+              <option value="deposit">Deposits</option>
+              <option value="withdrawal">Withdrawals</option>
+            </select>
+          </div>
+        </div>
+        <div class="tx-list tx-list-full" id="fullTxList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: ANALYTICS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-analytics">
+      <div class="section-greeting">
+        <h1>Analytics</h1>
+        <p>Trends, insights, and projections for your savings journey.</p>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="card analytics-card">
+          <div class="card-header"><h2 class="card-title">Savings Growth</h2></div>
+          <div class="bar-chart" id="analyticsChart"><!-- Rendered by JS --></div>
+        </div>
+        <div class="card analytics-card">
+          <div class="card-header"><h2 class="card-title">Goal Breakdown</h2></div>
+          <div class="donut-chart-wrap" id="donutChart"><!-- Rendered by JS --></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Projection — 12 Months</h2></div>
+        <div class="projection-chart" id="projectionChart"><!-- Rendered by JS --></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: SETTINGS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-settings">
+      <div class="section-greeting">
+        <h1>Settings</h1>
+        <p>Personalise your Verdant experience.</p>
+      </div>
+
+      <div class="settings-grid">
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Profile</h2></div>
+          <div class="settings-form">
+            <div class="calc-field"><label>Full Name</label><input type="text" value="Alex Kim" /></div>
+            <div class="calc-field"><label>Email</label><input type="email" value="alex@example.com" /></div>
+            <div class="calc-field"><label>Monthly Income ($)</label><input type="number" id="monthlyIncome" value="5200" onchange="updateRate()" /></div>
+            <div class="calc-field"><label>Base Currency</label>
+              <select><option>USD — US Dollar</option><option>EUR — Euro</option><option>GBP — Pound</option><option>SGD — Singapore Dollar</option></select>
+            </div>
+            <button class="primary-btn" onclick="showToast('Profile saved!')">Save Changes</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Notifications</h2></div>
+          <div class="toggle-list">
+            <div class="toggle-row"><span>Goal milestone alerts</span><label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+            <div class="toggle-row"><span>Monthly summary email</span><label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+            <div class="toggle-row"><span>Low savings warnings</span><label class="toggle"><input type="checkbox" /></span></label></div>
+            <div class="toggle-row"><span>Deposit reminders</span><label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Backend Integration</h2></div>
+          <div class="backend-info">
+            <p class="backend-note">This prototype uses browser <code>localStorage</code> for persistence. To scale to a full backend, connect to the Flask/Django API structure below:</p>
+            <pre class="code-block"><code># Flask Backend Structure
+# ----------------------------
+# app.py         ← Flask app entry
+# models.py      ← SQLAlchemy models
+#   - User(id, name, email)
+#   - Goal(id, user_id, name, target, current)
+#   - Transaction(id, user_id, type, amount, note, date)
+# routes/
+#   - auth.py    ← /api/auth/*
+#   - goals.py   ← /api/goals/*
+#   - txns.py    ← /api/transactions/*
+# config.py      ← DB URI, secret keys
+#
+# Django alternative:
+#   savings/models.py  ← Goal, Transaction
+#   savings/views.py   ← DRF ViewSets
+#   savings/urls.py    ← Router endpoints
+</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== DEPOSIT MODAL ========== -->
+  <div class="modal-overlay" id="depositModal" onclick="closeDepositModal(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add Deposit</h2>
+        <button class="modal-close" onclick="closeDepositModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="calc-field">
+          <label>Amount ($)</label>
+          <input type="number" id="depositAmount" placeholder="0.00" min="0" />
+        </div>
+        <div class="calc-field">
+          <label>Goal (optional)</label>
+          <select id="depositGoal">
+            <option value="">— General Savings —</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Note</label>
+          <input type="text" id="depositNote" placeholder="Monthly transfer, bonus, etc." />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" onclick="closeDepositModal()">Cancel</button>
+        <button class="primary-btn" onclick="submitDeposit()">Confirm Deposit →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOAST NOTIFICATION ========== -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+/**
+ * ============================================================
+ *  VERDANT — Personal Savings Tracker
+ *  app.js
+ *
+ *  Architecture:
+ *    State  — single source of truth (persisted to localStorage)
+ *    Render — pure functions that read State and paint the DOM
+ *    Events — user actions that mutate State then call Render
+ *
+ *  Backend Readiness:
+ *    All data mutations are funnelled through saveState().
+ *    Replace saveState() / loadState() with fetch('/api/...')
+ *    calls to wire up a Flask or Django REST backend.
+ * ============================================================
+ */
+
+// ============================================================
+//  STATE — single source of truth
+// ============================================================
+const DEFAULT_STATE = {
+  totalSavings: 12450.00,           // Running total ($)
+  monthlyIncome: 5200,              // Used for saving-rate KPI
+  monthlyDeposits: {                // deposits by month key "YYYY-MM"
+    "2025-01": 900,
+    "2025-02": 1050,
+    "2025-03": 800,
+    "2025-04": 1200,
+    "2025-05": 950,
+    "2025-06": 1100,
+    "2025-07": 870,
+    "2025-08": 1300,
+    "2025-09": 990,
+    "2025-10": 1150,
+    "2025-11": 1050,
+    "2025-12": 0,                   // current month — grows with deposits
+  },
+  goals: [
+    { id: 1, name: "Emergency Fund", emoji: "🛡️", target: 20000, current: 12450, created: "2025-01-01" },
+    { id: 2, name: "Japan Holiday",  emoji: "✈️", target: 5000,  current: 2200,  created: "2025-03-01" },
+    { id: 3, name: "New MacBook",    emoji: "💻", target: 3500,  current: 1800,  created: "2025-06-01" },
+  ],
+  transactions: [
+    { id: 1,  type: "deposit",    amount: 1300, note: "October salary transfer", date: "2025-10-01", goalId: null },
+    { id: 2,  type: "deposit",    amount: 500,  note: "Freelance project",        date: "2025-10-12", goalId: 2 },
+    { id: 3,  type: "withdrawal", amount: 200,  note: "Camera lens",              date: "2025-10-20", goalId: null },
+    { id: 4,  type: "deposit",    amount: 900,  note: "November salary transfer", date: "2025-11-01", goalId: null },
+    { id: 5,  type: "deposit",    amount: 150,  note: "Bonus",                    date: "2025-11-15", goalId: 1 },
+    { id: 6,  type: "withdrawal", amount: 75,   note: "Spotify + subscriptions",  date: "2025-11-22", goalId: null },
+    { id: 7,  type: "deposit",    amount: 800,  note: "December salary transfer", date: "2025-12-01", goalId: null },
+  ],
+  nextId: 8,
+};
+
+/**
+ * loadState — tries localStorage first; falls back to DEFAULT_STATE.
+ * Replace with: const res = await fetch('/api/state'); return res.json();
+ */
+function loadState() {
+  try {
+    const raw = localStorage.getItem('verdant_state');
+    return raw ? JSON.parse(raw) : { ...DEFAULT_STATE };
+  } catch {
+    return { ...DEFAULT_STATE };
+  }
+}
+
+/**
+ * saveState — persists to localStorage.
+ * Replace with: await fetch('/api/state', { method:'PUT', body: JSON.stringify(state) });
+ */
+function saveState() {
+  localStorage.setItem('verdant_state', JSON.stringify(state));
+}
+
+// Initialise state
+let state = loadState();
+
+// ============================================================
+//  UTILITIES
+// ============================================================
+
+/** Format number as dollar currency string */
+function fmt(n) {
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/** Format compact dollar for charts */
+function fmtK(n) {
+  if (n >= 1000) return '$' + (n / 1000).toFixed(1) + 'k';
+  return '$' + Math.round(n);
+}
+
+/** Get current month key "YYYY-MM" */
+function currentMonthKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Month abbreviation from 1-based number */
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/** Resolve time of day greeting */
+function timeOfDay() {
+  const h = new Date().getHours();
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  return 'evening';
+}
+
+/** Calculate months until goal is reached */
+function monthsToGoal(remaining, monthly) {
+  if (monthly <= 0) return null;
+  return Math.ceil(remaining / monthly);
+}
+
+/** Projected completion date string */
+function projectedDate(months) {
+  if (!months) return '—';
+  const d = new Date();
+  d.setMonth(d.getMonth() + months);
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+/** Total deposited in the current month (from transactions) */
+function currentMonthDeposited() {
+  const key = currentMonthKey();
+  const [y, m] = key.split('-').map(Number);
+  return state.transactions
+    .filter(tx => {
+      const d = new Date(tx.date);
+      return tx.type === 'deposit' && d.getFullYear() === y && d.getMonth() + 1 === m;
+    })
+    .reduce((sum, tx) => sum + tx.amount, 0);
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+
+/**
+ * showSection — switch visible section and update nav highlights.
+ * @param {string} name  Section ID suffix (e.g. 'dashboard')
+ * @param {Element|null} linkEl  The nav-item that was clicked
+ */
+function showSection(name, linkEl) {
+  // Hide all sections
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  // Show target section
+  document.getElementById('section-' + name)?.classList.add('active');
+
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (linkEl) linkEl.classList.add('active');
+
+  // Update topbar title
+  const titles = {
+    dashboard: 'Dashboard',
+    goals: 'Goals',
+    transactions: 'Transactions',
+    analytics: 'Analytics',
+    settings: 'Settings',
+  };
+  document.getElementById('topbarTitle').textContent = titles[name] || '';
+
+  // Re-render section-specific views
+  if (name === 'transactions') renderTransactions();
+  if (name === 'analytics')    renderAnalytics();
+  if (name === 'goals')        renderGoalsGrid();
+
+  closeSidebar();
+}
+
+/** Open/close sidebar on mobile */
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ============================================================
+//  RENDER — DASHBOARD
+// ============================================================
+
+function renderDashboard() {
+  renderKPIs();
+  renderProgressBars();
+  renderGoalSnapshot();
+  renderRecentTransactions();
+}
+
+/** Update the four KPI cards */
+function renderKPIs() {
+  const monthlyDep = currentMonthDeposited();
+  document.getElementById('kpiTotal').textContent   = fmt(state.totalSavings);
+  document.getElementById('kpiMonthly').textContent = fmt(monthlyDep);
+
+  // Closest active goal
+  const topGoal = state.goals[0];
+  if (topGoal) {
+    const remaining = Math.max(0, topGoal.target - topGoal.current);
+    document.getElementById('kpiToGoal').textContent = fmt(remaining);
+    document.getElementById('kpiGoalLabel').textContent = topGoal.name;
+  }
+
+  // Saving rate = monthlyDeposited / monthlyIncome * 100
+  const rate = state.monthlyIncome > 0
+    ? Math.round((monthlyDep / state.monthlyIncome) * 100)
+    : 0;
+  document.getElementById('kpiRate').textContent = rate + '%';
+
+  // Update income input in settings
+  const incomeInput = document.getElementById('monthlyIncome');
+  if (incomeInput) incomeInput.value = state.monthlyIncome;
+}
+
+/** Build monthly progress bar chart (Jan–Dec) */
+function renderProgressBars() {
+  const container = document.getElementById('progressBars');
+  if (!container) return;
+
+  const months = Object.entries(state.monthlyDeposits);
+  const maxVal  = Math.max(...months.map(([,v]) => v), 1);
+
+  container.innerHTML = months.map(([key, val]) => {
+    const [, m] = key.split('-').map(Number);
+    const pct   = Math.round((val / maxVal) * 100);
+    return `
+      <div class="progress-month">
+        <span class="progress-month-label">${MONTH_ABBR[m - 1]}</span>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-amount">${fmtK(val)}</span>
+      </div>`;
+  }).join('');
+}
+
+/** Render the top 3 goals as compact items for the dashboard */
+function renderGoalSnapshot() {
+  const container = document.getElementById('goalList');
+  if (!container) return;
+
+  const goals = state.goals.slice(0, 3);
+  if (!goals.length) {
+    container.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">No goals yet — add one in the Goals section.</p>';
+    return;
+  }
+
+  container.innerHTML = goals.map(g => {
+    const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+    return `
+      <div class="goal-item">
+        <div class="goal-item-header">
+          <span class="goal-item-name">${g.emoji} ${g.name}</span>
+          <span class="goal-item-pct">${pct}%</span>
+        </div>
+        <div class="goal-track">
+          <div class="goal-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="goal-item-amounts">
+          <span>${fmt(g.current)} saved</span>
+          <span>Goal: ${fmt(g.target)}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/** Render the 5 most recent transactions on the dashboard */
+function renderRecentTransactions() {
+  const container = document.getElementById('recentTxList');
+  if (!container) return;
+
+  const recent = [...state.transactions].reverse().slice(0, 5);
+  renderTxRows(container, recent);
+}
+
+/** Shared helper — renders transaction rows into a container element */
+function renderTxRows(container, txList) {
+  if (!txList.length) {
+    container.innerHTML = '<p style="font-size:13px;color:var(--text-muted);padding:12px 8px;">No transactions yet.</p>';
+    return;
+  }
+
+  container.innerHTML = txList.map(tx => {
+    const sign   = tx.type === 'deposit' ? '+' : '−';
+    const icon   = tx.type === 'deposit' ? '↑' : '↓';
+    const d      = new Date(tx.date);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `
+      <div class="tx-row">
+        <div class="tx-icon ${tx.type}">${icon}</div>
+        <div class="tx-info">
+          <div class="tx-note">${tx.note || (tx.type === 'deposit' ? 'Deposit' : 'Withdrawal')}</div>
+          <div class="tx-date">${dateStr}</div>
+        </div>
+        <div class="tx-amount ${tx.type}">${sign}${fmt(tx.amount)}</div>
+      </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  RENDER — TRANSACTIONS
+// ============================================================
+
+/** Full transactions list with filter */
+function renderTransactions() {
+  const container = document.getElementById('fullTxList');
+  if (!container) return;
+
+  const filter = document.getElementById('txFilter')?.value || 'all';
+  let list = [...state.transactions].reverse();
+  if (filter !== 'all') list = list.filter(tx => tx.type === filter);
+
+  renderTxRows(container, list);
+}
+
+// ============================================================
+//  RENDER — GOALS
+// ============================================================
+
+function renderGoalsGrid() {
+  const container = document.getElementById('goalsGrid');
+  if (!container) return;
+
+  // Populate deposit modal goal select
+  const select = document.getElementById('depositGoal');
+  if (select) {
+    select.innerHTML = '<option value="">— General Savings —</option>' +
+      state.goals.map(g => `<option value="${g.id}">${g.emoji} ${g.name}</option>`).join('');
+  }
+
+  if (!state.goals.length) {
+    container.innerHTML = '<p style="font-size:14px;color:var(--text-muted);">No goals yet. Use the calculator above to create one!</p>';
+    return;
+  }
+
+  container.innerHTML = state.goals.map(g => {
+    const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+    const remaining = Math.max(0, g.target - g.current);
+    return `
+      <div class="goal-card" id="goal-card-${g.id}">
+        <span class="goal-card-emoji">${g.emoji}</span>
+        <div class="goal-card-pct">${pct}%</div>
+        <div class="goal-card-name">${g.name}</div>
+        <div class="goal-card-dates">Started ${new Date(g.created).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</div>
+        <div class="goal-track" style="height:8px;border-radius:99px;">
+          <div class="goal-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="goal-card-amounts">
+          <span><strong>${fmt(g.current)}</strong> saved</span>
+          <span>${fmt(remaining)} left of <strong>${fmt(g.target)}</strong></span>
+        </div>
+        <div class="goal-card-actions">
+          <button class="goal-action-btn" onclick="addToGoal(${g.id})">+ Add funds</button>
+          <button class="goal-action-btn delete" onclick="deleteGoal(${g.id})">Remove</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  RENDER — ANALYTICS
+// ============================================================
+
+function renderAnalytics() {
+  renderAnalyticsChart();
+  renderDonut();
+  renderProjection();
+}
+
+/** Bar chart of monthly deposits for the analytics section */
+function renderAnalyticsChart() {
+  const container = document.getElementById('analyticsChart');
+  if (!container) return;
+
+  const entries = Object.entries(state.monthlyDeposits);
+  const maxVal  = Math.max(...entries.map(([,v]) => v), 1);
+
+  container.innerHTML = entries.map(([key, val]) => {
+    const [, m] = key.split('-').map(Number);
+    const heightPct = Math.max(4, Math.round((val / maxVal) * 100));
+    return `
+      <div class="bar-wrap">
+        <span class="bar-val">${fmtK(val)}</span>
+        <div class="bar" style="height:${heightPct}%"></div>
+        <span class="bar-label">${MONTH_ABBR[m - 1]}</span>
+      </div>`;
+  }).join('');
+}
+
+/** Simple legend-based "donut" for goal breakdown */
+function renderDonut() {
+  const container = document.getElementById('donutChart');
+  if (!container) return;
+
+  const COLORS = ['#A8D5BA','#78BF97','#4E8C6A','#D4EDDF','#B2D8C5'];
+  const total  = state.goals.reduce((s, g) => s + g.current, 0) || 1;
+
+  container.innerHTML = state.goals.map((g, i) => {
+    const pct = Math.round((g.current / total) * 100);
+    return `
+      <div class="donut-legend-item">
+        <div class="donut-dot" style="background:${COLORS[i % COLORS.length]}"></div>
+        <span class="donut-legend-name">${g.emoji} ${g.name}</span>
+        <span class="donut-legend-val">${fmt(g.current)}</span>
+        <span class="donut-legend-pct">${pct}%</span>
+      </div>`;
+  }).join('');
+
+  if (!state.goals.length) {
+    container.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">Add goals to see breakdown.</p>';
+  }
+}
+
+/** 12-month projection chart — shows actual past + projected future */
+function renderProjection() {
+  const container = document.getElementById('projectionChart');
+  if (!container) return;
+
+  const months  = Object.entries(state.monthlyDeposits);
+  const avgDep  = months.reduce((s,[,v]) => s + v, 0) / months.length;
+
+  // Build 12 months: first 11 actual (from state), last 1 projected
+  let running = 0;
+  const CHART_COLORS = { actual: '#A8D5BA', projected: '#E8F5EE' };
+  const bars = months.map(([key, val], idx) => {
+    running += val;
+    const isProjected = idx >= 11;
+    return { key, val: running, isProjected };
+  });
+
+  // Add one projected month if data is full
+  const lastKey = months[months.length - 1][0];
+  const [ly, lm] = lastKey.split('-').map(Number);
+  const projMonth = lm === 12 ? `${ly+1}-01` : `${ly}-${String(lm+1).padStart(2,'0')}`;
+  bars.push({ key: projMonth, val: running + avgDep, isProjected: true });
+
+  const maxVal = Math.max(...bars.map(b => b.val), 1);
+
+  const barsHTML = bars.map(b => {
+    const [, m] = b.key.split('-').map(Number);
+    const heightPct = Math.max(4, Math.round((b.val / maxVal) * 90));
+    const cls = b.isProjected ? 'proj-bar projected' : 'proj-bar actual';
+    return `
+      <div class="proj-bar-wrap">
+        <div class="${cls}" style="height:${heightPct}px;width:28px;"></div>
+        <span class="proj-label">${MONTH_ABBR[m - 1]}</span>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="projection-grid" style="display:flex;align-items:flex-end;gap:8px;height:140px;overflow-x:auto;padding-bottom:4px;">
+      ${barsHTML}
+    </div>
+    <div class="proj-legend">
+      <div class="proj-legend-item"><div class="proj-legend-dot" style="background:#A8D5BA"></div>Actual</div>
+      <div class="proj-legend-item"><div class="proj-legend-dot" style="background:#E8F5EE;border:1px dashed #A8D5BA"></div>Projected</div>
+    </div>`;
+}
+
+// ============================================================
+//  GOAL CALCULATOR
+// ============================================================
+
+/**
+ * calculateGoal — core arithmetic for the savings goal calculator.
+ *
+ *   remaining = target − current
+ *   months    = ceil(remaining / monthly)
+ *   percent   = (current / target) * 100
+ */
+function calculateGoal() {
+  const target  = parseFloat(document.getElementById('calcTarget').value)  || 0;
+  const current = parseFloat(document.getElementById('calcCurrent').value) || 0;
+  const monthly = parseFloat(document.getElementById('calcMonthly').value) || 0;
+
+  if (target <= 0) { showToast('Please enter a target amount.'); return; }
+
+  const remaining = Math.max(0, target - current);
+  const percent   = Math.min(100, Math.round((current / target) * 100));
+  const months    = monthsToGoal(remaining, monthly);
+  const dateStr   = projectedDate(months);
+
+  // Update result UI
+  document.getElementById('calcRemaining').textContent = fmt(remaining);
+  document.getElementById('calcMonths').textContent    = months !== null ? months + ' mo' : '—';
+  document.getElementById('calcPercent').textContent   = percent + '%';
+  document.getElementById('calcDate').textContent      = dateStr;
+  document.getElementById('calcProgressFill').style.width = percent + '%';
+
+  // Contextual message
+  let msg = '';
+  if (percent >= 100) {
+    msg = '🎉 Goal achieved! You\'ve already hit this target.';
+  } else if (!monthly) {
+    msg = `You need ${fmt(remaining)} more to reach your goal. Set a monthly contribution to see a timeline.`;
+  } else {
+    msg = `At ${fmt(monthly)}/month, you'll reach your goal of ${fmt(target)} in about ${months} months (${dateStr}).`;
+  }
+  document.getElementById('calcMessage').textContent = msg;
+
+  // Show result block
+  document.getElementById('calcResult').style.display = 'block';
+}
+
+/** Add goal from calculator to the goals list */
+function addGoalFromCalc() {
+  const name    = document.getElementById('calcName').value.trim() || 'New Goal';
+  const target  = parseFloat(document.getElementById('calcTarget').value)  || 0;
+  const current = parseFloat(document.getElementById('calcCurrent').value) || 0;
+
+  if (target <= 0) { showToast('Enter a target amount first.'); return; }
+
+  const EMOJIS = ['🎯','🏡','✈️','🚗','💻','📚','🏖️','💎','🎸','🌱'];
+  const emoji  = EMOJIS[state.goals.length % EMOJIS.length];
+
+  state.goals.push({
+    id: state.nextId++,
+    name, emoji, target,
+    current: Math.min(current, target),
+    created: new Date().toISOString().slice(0, 10),
+  });
+  saveState();
+
+  renderGoalsGrid();
+  renderGoalSnapshot();
+  renderKPIs();
+  showToast(`"${name}" added to your goals!`);
+
+  // Reset calculator
+  document.getElementById('calcResult').style.display = 'none';
+  ['calcName','calcTarget','calcCurrent','calcMonthly'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+/** Add funds to an existing goal */
+function addToGoal(goalId) {
+  const amountStr = prompt('How much would you like to add to this goal? ($)');
+  if (!amountStr) return;
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) { showToast('Invalid amount.'); return; }
+
+  const goal = state.goals.find(g => g.id === goalId);
+  if (!goal) return;
+
+  goal.current = Math.min(goal.target, goal.current + amount);
+  state.totalSavings += amount;
+
+  // Log transaction
+  state.transactions.push({
+    id: state.nextId++,
+    type: 'deposit',
+    amount,
+    note: `Added to "${goal.name}"`,
+    date: new Date().toISOString().slice(0, 10),
+    goalId,
+  });
+
+  // Update current month's deposit total
+  const key = currentMonthKey();
+  state.monthlyDeposits[key] = (state.monthlyDeposits[key] || 0) + amount;
+
+  saveState();
+  renderDashboard();
+  renderGoalsGrid();
+  showToast(`${fmt(amount)} added to "${goal.name}"!`);
+}
+
+/** Remove a goal */
+function deleteGoal(goalId) {
+  if (!confirm('Remove this goal? This won\'t affect your total savings balance.')) return;
+  state.goals = state.goals.filter(g => g.id !== goalId);
+  saveState();
+  renderGoalsGrid();
+  renderGoalSnapshot();
+  renderKPIs();
+  showToast('Goal removed.');
+}
+
+// ============================================================
+//  DEPOSIT MODAL
+// ============================================================
+
+function openDepositModal() {
+  // Populate goals dropdown
+  renderGoalsGrid();
+  document.getElementById('depositModal').classList.add('open');
+  document.getElementById('depositAmount').focus();
+}
+
+function closeDepositModal(event) {
+  // Only close if clicking the overlay background or the close button
+  if (event && event.target !== document.getElementById('depositModal')) return;
+  document.getElementById('depositModal').classList.remove('open');
+  document.getElementById('depositAmount').value = '';
+  document.getElementById('depositNote').value   = '';
+}
+
+/**
+ * submitDeposit — validates and processes a user deposit.
+ *
+ *  Updates:
+ *    state.totalSavings         ← total balance
+ *    state.monthlyDeposits      ← for progress chart
+ *    state.goals[i].current     ← if a goal is selected
+ *    state.transactions         ← activity log
+ */
+function submitDeposit() {
+  const amountRaw = parseFloat(document.getElementById('depositAmount').value);
+  const goalId    = parseInt(document.getElementById('depositGoal').value) || null;
+  const note      = document.getElementById('depositNote').value.trim() || 'Manual deposit';
+
+  // Validation
+  if (isNaN(amountRaw) || amountRaw <= 0) {
+    showToast('Please enter a valid amount.'); return;
+  }
+
+  const amount = Math.round(amountRaw * 100) / 100; // Normalise to 2 decimal places
+
+  // Update total savings
+  state.totalSavings = Math.round((state.totalSavings + amount) * 100) / 100;
+
+  // Update goal balance if one was selected
+  if (goalId) {
+    const goal = state.goals.find(g => g.id === goalId);
+    if (goal) goal.current = Math.min(goal.target, Math.round((goal.current + amount) * 100) / 100);
+  }
+
+  // Update monthly deposits for progress chart
+  const key = currentMonthKey();
+  state.monthlyDeposits[key] = Math.round(((state.monthlyDeposits[key] || 0) + amount) * 100) / 100;
+
+  // Log the transaction
+  state.transactions.push({
+    id: state.nextId++,
+    type: 'deposit',
+    amount,
+    note,
+    date: new Date().toISOString().slice(0, 10),
+    goalId,
+  });
+
+  saveState();
+  closeDepositModal();
+  renderDashboard();
+
+  showToast(`${fmt(amount)} deposited!`);
+}
+
+// ============================================================
+//  SETTINGS
+// ============================================================
+
+/** Update saving rate KPI when income changes */
+function updateRate() {
+  const val = parseFloat(document.getElementById('monthlyIncome')?.value) || 0;
+  state.monthlyIncome = val;
+  saveState();
+  renderKPIs();
+}
+
+// ============================================================
+//  TOAST NOTIFICATION
+// ============================================================
+
+let toastTimer;
+function showToast(message) {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Topbar date
+  document.getElementById('topbarDate').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+  // Greeting time of day
+  const tod = document.getElementById('timeOfDay');
+  if (tod) tod.textContent = timeOfDay();
+
+  // Initial render
+  renderDashboard();
+
+  // Keyboard shortcut: Escape closes modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.getElementById('depositModal').classList.remove('open');
+  });
+});
+
+</script>
+</body>
+</html>

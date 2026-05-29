@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verdant — Personal Savings Tracker</title>
+  <!-- Google Fonts: Instrument Serif (display) + DM Sans (body) for a premium, editorial feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== MOBILE OVERLAY (closes sidebar on mobile) ========== -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ========== SIDEBAR NAVIGATION ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">V</span>
+      <span class="logo-text">Verdant</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="showSection('dashboard', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('goals', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="12" y1="23" x2="12" y2="21"/></svg>
+        <span>Goals</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('transactions', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3L21 7L17 11"/><path d="M3 7H21"/><path d="M7 21L3 17L7 13"/><path d="M21 17H3"/></svg>
+        <span>Transactions</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('analytics', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Analytics</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('settings', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-profile">
+      <div class="avatar">AK</div>
+      <div class="profile-info">
+        <span class="profile-name">Alex Kim</span>
+        <span class="profile-plan">Pro Plan</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT AREA ========== -->
+  <main class="main-content">
+
+    <!-- ── TOPBAR ── -->
+    <header class="topbar">
+      <button class="mobile-menu-btn" onclick="openSidebar()" aria-label="Open navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <span class="topbar-date" id="topbarDate"></span>
+        <button class="add-btn" onclick="openDepositModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Deposit
+        </button>
+      </div>
+    </header>
+
+    <!-- ════════════════════════════════════════
+         SECTION: DASHBOARD
+    ════════════════════════════════════════ -->
+    <section class="section active" id="section-dashboard">
+
+      <!-- Greeting -->
+      <div class="section-greeting">
+        <h1>Good <span id="timeOfDay">morning</span>, Alex 👋</h1>
+        <p>Here's how your savings are growing this month.</p>
+      </div>
+
+      <!-- KPI Cards Row -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-accent">
+          <div class="kpi-label">Total Savings</div>
+          <div class="kpi-value" id="kpiTotal">$12,450.00</div>
+          <div class="kpi-trend positive">↑ 8.2% from last month</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Monthly Deposited</div>
+          <div class="kpi-value" id="kpiMonthly">$0.00</div>
+          <div class="kpi-trend neutral" id="kpiMonthlyTrend">This month</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">To Next Goal</div>
+          <div class="kpi-value" id="kpiToGoal">$7,550.00</div>
+          <div class="kpi-trend neutral" id="kpiGoalLabel">Emergency Fund</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Saving Rate</div>
+          <div class="kpi-value" id="kpiRate">24%</div>
+          <div class="kpi-trend positive">of monthly income</div>
+        </div>
+      </div>
+
+      <!-- Monthly Progress + Mini Goals side by side -->
+      <div class="dashboard-grid">
+
+        <!-- Monthly Progress Chart -->
+        <div class="card" id="progressCard">
+          <div class="card-header">
+            <h2 class="card-title">Monthly Progress</h2>
+            <span class="card-badge">2025</span>
+          </div>
+          <div class="progress-bars" id="progressBars">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Quick Goal Snapshot -->
+        <div class="card" id="goalSnapshotCard">
+          <div class="card-header">
+            <h2 class="card-title">Goal Snapshot</h2>
+            <a href="#" class="card-link" onclick="showSection('goals', null)">See all →</a>
+          </div>
+          <div class="goal-list" id="goalList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recent Transactions Preview -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Activity</h2>
+          <a href="#" class="card-link" onclick="showSection('transactions', null)">View all →</a>
+        </div>
+        <div class="tx-list" id="recentTxList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: GOALS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-goals">
+      <div class="section-greeting">
+        <h1>Savings Goals</h1>
+        <p>Define targets and track your progress toward each one.</p>
+      </div>
+
+      <!-- Goal Calculator -->
+      <div class="card calculator-card">
+        <div class="card-header">
+          <h2 class="card-title">Goal Calculator</h2>
+          <span class="card-badge">Live</span>
+        </div>
+        <div class="calculator-grid">
+          <div class="calc-field">
+            <label>Goal Name</label>
+            <input type="text" id="calcName" placeholder="e.g. New Car" />
+          </div>
+          <div class="calc-field">
+            <label>Target Amount ($)</label>
+            <input type="number" id="calcTarget" placeholder="25000" min="0" />
+          </div>
+          <div class="calc-field">
+            <label>Current Savings ($)</label>
+            <input type="number" id="calcCurrent" placeholder="5000" min="0" />
+          </div>
+          <div class="calc-field">
+            <label>Monthly Contribution ($)</label>
+            <input type="number" id="calcMonthly" placeholder="500" min="0" />
+          </div>
+        </div>
+        <button class="primary-btn" onclick="calculateGoal()">Calculate →</button>
+
+        <!-- Calculation Result -->
+        <div class="calc-result" id="calcResult" style="display:none;">
+          <div class="calc-result-row">
+            <div class="calc-stat">
+              <span class="calc-stat-label">Remaining</span>
+              <span class="calc-stat-value" id="calcRemaining">—</span>
+            </div>
+            <div class="calc-stat">
+              <span class="calc-stat-label">Months to Goal</span>
+              <span class="calc-stat-value" id="calcMonths">—</span>
+            </div>
+            <div class="calc-stat">
+              <span class="calc-stat-label">Progress</span>
+              <span class="calc-stat-value" id="calcPercent">—</span>
+            </div>
+            <div class="calc-stat">
+              <span class="calc-stat-label">Target Date</span>
+              <span class="calc-stat-value" id="calcDate">—</span>
+            </div>
+          </div>
+          <div class="calc-progress-bar">
+            <div class="calc-progress-fill" id="calcProgressFill"></div>
+          </div>
+          <p class="calc-message" id="calcMessage"></p>
+          <button class="secondary-btn" onclick="addGoalFromCalc()">Add to My Goals →</button>
+        </div>
+      </div>
+
+      <!-- Goals List -->
+      <div class="goals-grid" id="goalsGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: TRANSACTIONS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-transactions">
+      <div class="section-greeting">
+        <h1>Transactions</h1>
+        <p>Every deposit and withdrawal, in one place.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">All Activity</h2>
+          <div class="filter-row">
+            <select id="txFilter" onchange="renderTransactions()">
+              <option value="all">All</option>
+              <option value="deposit">Deposits</option>
+              <option value="withdrawal">Withdrawals</option>
+            </select>
+          </div>
+        </div>
+        <div class="tx-list tx-list-full" id="fullTxList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: ANALYTICS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-analytics">
+      <div class="section-greeting">
+        <h1>Analytics</h1>
+        <p>Trends, insights, and projections for your savings journey.</p>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="card analytics-card">
+          <div class="card-header"><h2 class="card-title">Savings Growth</h2></div>
+          <div class="bar-chart" id="analyticsChart"><!-- Rendered by JS --></div>
+        </div>
+        <div class="card analytics-card">
+          <div class="card-header"><h2 class="card-title">Goal Breakdown</h2></div>
+          <div class="donut-chart-wrap" id="donutChart"><!-- Rendered by JS --></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Projection — 12 Months</h2></div>
+        <div class="projection-chart" id="projectionChart"><!-- Rendered by JS --></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════
+         SECTION: SETTINGS
+    ════════════════════════════════════════ -->
+    <section class="section" id="section-settings">
+      <div class="section-greeting">
+        <h1>Settings</h1>
+        <p>Personalise your Verdant experience.</p>
+      </div>
+
+      <div class="settings-grid">
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Profile</h2></div>
+          <div class="settings-form">
+            <div class="calc-field"><label>Full Name</label><input type="text" value="Alex Kim" /></div>
+            <div class="calc-field"><label>Email</label><input type="email" value="alex@example.com" /></div>
+            <div class="calc-field"><label>Monthly Income ($)</label><input type="number" id="monthlyIncome" value="5200" onchange="updateRate()" /></div>
+            <div class="calc-field"><label>Base Currency</label>
+              <select><option>USD — US Dollar</option><option>EUR — Euro</option><option>GBP — Pound</option><option>SGD — Singapore Dollar</option></select>
+            </div>
+            <button class="primary-btn" onclick="showToast('Profile saved!')">Save Changes</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Notifications</h2></div>
+          <div class="toggle-list">
+            <div class="toggle-row"><span>Goal milestone alerts</span><label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+            <div class="toggle-row"><span>Monthly summary email</span><label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+            <div class="toggle-row"><span>Low savings warnings</span><label class="toggle"><input type="checkbox" /></span></label></div>
+            <div class="toggle-row"><span>Deposit reminders</span><label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2 class="card-title">Backend Integration</h2></div>
+          <div class="backend-info">
+            <p class="backend-note">This prototype uses browser <code>localStorage</code> for persistence. To scale to a full backend, connect to the Flask/Django API structure below:</p>
+            <pre class="code-block"><code># Flask Backend Structure
+# ----------------------------
+# app.py         ← Flask app entry
+# models.py      ← SQLAlchemy models
+#   - User(id, name, email)
+#   - Goal(id, user_id, name, target, current)
+#   - Transaction(id, user_id, type, amount, note, date)
+# routes/
+#   - auth.py    ← /api/auth/*
+#   - goals.py   ← /api/goals/*
+#   - txns.py    ← /api/transactions/*
+# config.py      ← DB URI, secret keys
+#
+# Django alternative:
+#   savings/models.py  ← Goal, Transaction
+#   savings/views.py   ← DRF ViewSets
+#   savings/urls.py    ← Router endpoints
+</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== DEPOSIT MODAL ========== -->
+  <div class="modal-overlay" id="depositModal" onclick="closeDepositModal(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add Deposit</h2>
+        <button class="modal-close" onclick="closeDepositModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="calc-field">
+          <label>Amount ($)</label>
+          <input type="number" id="depositAmount" placeholder="0.00" min="0" />
+        </div>
+        <div class="calc-field">
+          <label>Goal (optional)</label>
+          <select id="depositGoal">
+            <option value="">— General Savings —</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Note</label>
+          <input type="text" id="depositNote" placeholder="Monthly transfer, bonus, etc." />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" onclick="closeDepositModal()">Cancel</button>
+        <button class="primary-btn" onclick="submitDeposit()">Confirm Deposit →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOAST NOTIFICATION ========== -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
