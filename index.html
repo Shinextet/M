@@ -568,6 +568,12 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
           <div class="settings-form">
             <p style="font-size:13px;color:var(--muted);line-height:1.6">Data is securely stored in Supabase cloud. Sign in from any device to access your savings.</p>
             <button class="secondary-btn" onclick="handleLogout()">Sign Out</button>
+            <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px;">
+              <p style="font-size:12px;color:var(--danger);font-weight:500;margin-bottom:10px;">⚠️ Danger Zone</p>
+              <button class="reset-btn" onclick="resetAllData()" style="width:100%;background:var(--danger-soft);color:var(--danger);border:1px solid #FCA5A5;border-radius:var(--r-md);padding:11px 22px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:var(--t);">
+                🗑️ Reset All Data (0 ကနေ စမည်)
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1067,6 +1073,22 @@ async function saveSettings(){
   userSettings.monthly_income = income;
   renderKPIs();
   showToast('Settings saved!');
+}
+
+async function resetAllData(){
+  const step1 = confirm('Warning!\n\nGoals, Transactions, Monthly Deposits အားလုံး ဖျက်မည်။\nTotal Savings 0 ကို ပြန်ညှိမည်။\n\nဆက်လုပ်မည်လား?');
+  if(!step1) return;
+  const step2 = confirm('နောက်ဆုံးအတည်ပြုချက်:\nဒီ action ကို ပြန်မလုပ်နိုင်ပါ။\n\nOK နှိပ်ရင် Data အကုန် ပျောက်သွားမည်။');
+  if(!step2) return;
+  try {
+    await db.from('transactions').delete().eq('user_id',currentUser.id);
+    await db.from('goals').delete().eq('user_id',currentUser.id);
+    await db.from('monthly_deposits').delete().eq('user_id',currentUser.id);
+    await db.from('user_settings').update({total_savings:0,monthly_income:userSettings.monthly_income}).eq('user_id',currentUser.id);
+    goals=[]; transactions=[]; monthlyDeps={}; userSettings.total_savings=0;
+    renderDashboard(); renderGoalsGrid();
+    showToast('Data အကုန် reset ပြီးပါပြီ။ 0 ကနေ စနိုင်ပါပြီ!');
+  } catch(err){ showToast('Error: '+err.message); }
 }
 
 // ============================================================
