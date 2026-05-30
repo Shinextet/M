@@ -1,14 +1,16 @@
-{
-  "name": "Verdant ငွေစု မှတ်တမ်း",
-  "short_name": "Verdant",
-  "description": "ကိုယ်ပိုင် ငွေစု မှတ်တမ်း",
-  "start_url": "./verdant-mm.html",
-  "display": "standalone",
-  "background_color": "#F8F9FA",
-  "theme_color": "#A8D5BA",
-  "orientation": "portrait-primary",
-  "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
-}
+// Verdant — Service Worker
+// App ကို offline မှာပါ အလုပ်လုပ်အောင် cache လုပ်ပေးသည်
+const CACHE = 'verdant-v2';
+const FILES = ['./verdant-mm.html','./manifest.json','./icon-192.png','./icon-512.png'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request)));
+});
