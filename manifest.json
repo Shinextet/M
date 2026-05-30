@@ -2,7 +2,7 @@
   "name": "Verdant ငွေစု မှတ်တမ်း",
   "short_name": "Verdant",
   "description": "ကိုယ်ပိုင် ငွေစု မှတ်တမ်း",
-  "start_url": "https://shinextet.github.io/M/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F8F9FA",
   "theme_color": "#A8D5BA",
