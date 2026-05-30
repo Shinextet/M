@@ -412,7 +412,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
       </div>
       <div class="dash-grid">
         <div class="card">
-          <div class="card-header"><h2 class="card-title">လစဉ် တိုးတက်မှု</h2><span class="card-badge" id="progYear">2026</span></div>
+          <div class="card-header"><h2 class="card-title">လစဉ် တိုးတက်မှု</h2><span class="card-badge" id="progYear">2025</span></div>
           <div class="progress-bars" id="progressBars"><div class="empty">မှတ်တမ်း မရှိသေးဘူး</div></div>
         </div>
         <div class="card">
@@ -526,6 +526,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
       <div class="calc-field"><label>ပမာဏ ($)</label><input type="number" id="depAmt" placeholder="0.00" min="0"/></div>
       <div class="calc-field"><label>ပန်းတိုင် (ရွေးချယ်နိုင်)</label><select id="depGoal"><option value="">— အထွေထွေ ငွေစု —</option></select></div>
       <div class="calc-field"><label>မှတ်ချက်</label><input type="text" id="depNote" placeholder="လစာ၊ ဘောနပ်စ်..."/></div>
+      <div class="calc-field"><label>ရက်စွဲ</label><input type="date" id="depDate"/></div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeDeposit()">မလုပ်တော့ဘူး</button>
@@ -551,7 +552,7 @@ let user     = null;
 let settings = { monthly_income:0, total_savings:0 };
 let goals    = [];
 let txns     = [];
-let monthly  = {};   // { "2026-05": 500 }
+let monthly  = {};   // { "2025-05": 500 }
 
 // ════════════════════════════════════════
 //  ကူညီသော function များ
@@ -561,7 +562,7 @@ const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','D
 const fmt  = n => '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 // သေးငယ်သော ဖော်မတ် — $1.2k
 const fmtK = n => n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+Math.round(n);
-// ယနေ့ လ key — "2026-05"
+// ယနေ့ လ key — "2025-05"
 const monthKey = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
 // ပြည့်မည့် ရက်စွဲ ခန့်မှန်း
 const projDate = m => { if(!m) return '—'; const d=new Date(); d.setMonth(d.getMonth()+m); return d.toLocaleDateString('en-US',{month:'short',year:'numeric'}); };
@@ -787,7 +788,7 @@ function renderTxRows(el,list){
   el.innerHTML = list.map(tx=>{
     const sign = tx.type==='deposit'?'+':'−';
     const icon = tx.type==='deposit'?'↑':'↓';
-    const d    = new Date(tx.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const d    = new Date(tx.date+'T00:00:00').toLocaleDateString('my',{year:'numeric',month:'long',day:'numeric'});
     return `<div class="tx-row">
       <div class="tx-icon ${tx.type}">${icon}</div>
       <div><div class="tx-note">${tx.note||tx.type}</div><div class="tx-date">${d}</div></div>
@@ -931,6 +932,8 @@ function renderAnalytics(){
 // ════════════════════════════════════════
 function openDeposit(){
   renderGoals();
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('depDate').value = today;
   document.getElementById('depositModal').classList.add('open');
   document.getElementById('depAmt').focus();
 }
@@ -939,6 +942,7 @@ function closeDeposit(event){
   document.getElementById('depositModal').classList.remove('open');
   document.getElementById('depAmt').value='';
   document.getElementById('depNote').value='';
+  document.getElementById('depDate').value='';
 }
 async function submitDeposit(){
   const amt    = parseFloat(document.getElementById('depAmt').value);
@@ -953,7 +957,7 @@ async function submitDeposit(){
   const newMo    = Math.round(((monthly[key]||0)+amount)*100)/100;
   await db.from('user_settings').update({total_savings:newTotal}).eq('user_id',user.id);
   await db.from('monthly_deposits').upsert({user_id:user.id,month_key:key,amount:newMo},{onConflict:'user_id,month_key'});
-  await db.from('transactions').insert({user_id:user.id,type:'deposit',amount,note,date:new Date().toISOString().slice(0,10),goal_id:goalId});
+  await db.from('transactions').insert({user_id:user.id,type:'deposit',amount,note,date:document.getElementById('depDate').value||new Date().toISOString().slice(0,10),goal_id:goalId});
   if(goalId){
     const g=goals.find(x=>x.id===goalId);
     if(g){ const nc=Math.min(g.target,Math.round((g.current+amount)*100)/100); await db.from('goals').update({current:nc}).eq('id',goalId); g.current=nc; }
