@@ -1,0 +1,14 @@
+{
+  "name": "Verdant ငွေစု မှတ်တမ်း",
+  "short_name": "Verdant",
+  "description": "ကိုယ်ပိုင် ငွေစု မှတ်တမ်း",
+  "start_url": "./verdant-mm.html",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#A8D5BA",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
