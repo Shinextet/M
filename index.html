@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
+<meta name="theme-color" content="#4CAF82"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Savings Money"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>Savings Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#4CAF82;--green-light:#E8F5EE;--green-mid:#3A9E70;--green-dark:#2D7A55;
+  --bg:#F2F7F4;--white:#FFFFFF;--card:#FFFFFF;
+  --text:#1A2E25;--text2:#5A7A68;--text3:#9BB5A5;
+  --border:#DDE8E2;--danger:#E55;--danger-bg:#FEE;
+  --r:14px;--r-sm:10px;--r-xl:20px;
+  --sh:0 2px 12px rgba(44,100,70,.08);
+  --sh2:0 4px 24px rgba(44,100,70,.13);
+  --t:.2s cubic-bezier(.4,0,.2,1);
+  /* safe areas for notch/home bar */
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
+}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans','Noto Sans Myanmar',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+
+/* ══ LOADING ══ */
+#loading{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:9999;transition:opacity .4s ease}
+#loading.hide{opacity:0;pointer-events:none}
+.load-icon{width:80px;height:80px;background:rgba(255,255,255,.2);border-radius:24px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.load-icon img{width:56px;height:56px;border-radius:14px;object-fit:cover}
+.load-icon-txt{font-size:36px;font-weight:700;color:white}
+.load-name{font-size:22px;font-weight:600;color:white;letter-spacing:.5px}
+.load-sub{font-size:13px;color:rgba(255,255,255,.7)}
+.load-dots{display:flex;gap:8px}
+.load-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);animation:dotPulse 1.4s ease infinite}
+.load-dot:nth-child(2){animation-delay:.2s}
+.load-dot:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+
+/* ══ AUTH ══ */
+#authScreen{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:linear-gradient(160deg,var(--green) 0%,var(--green-dark) 100%);padding:var(--sat) var(--sar) 0 var(--sal)}
+#authScreen.show{display:flex}
+.auth-sheet{background:var(--white);border-radius:28px 28px 0 0;width:100%;max-width:480px;padding:10px 28px 32px;padding-bottom:calc(32px + var(--sab))}
+.auth-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 24px}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.auth-brand-icon{width:44px;height:44px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.auth-brand-icon img{width:100%;height:100%;object-fit:cover}
+.auth-brand-icon-txt{font-size:22px;font-weight:700;color:white}
+.auth-brand-name{font-size:20px;font-weight:600;color:var(--text)}
+.auth-tabs{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:20px}
+.auth-tab{flex:1;padding:9px;border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:500;color:var(--text2);border-radius:8px;cursor:pointer;transition:var(--t)}
+.auth-tab.active{background:white;color:var(--green-dark);box-shadow:0 1px 6px rgba(44,100,70,.12)}
+.auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.auth-field label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.auth-field input{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;font-size:15px;color:var(--text);background:var(--bg);font-family:inherit;outline:none;transition:var(--t)}
+.auth-field input:focus{border-color:var(--green);background:white;box-shadow:0 0 0 3px rgba(76,175,130,.15)}
+.auth-btn{width:100%;background:var(--green);color:white;border:none;border-radius:var(--r);padding:15px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--t);margin-top:4px}
+.auth-btn:active{transform:scale(.98)}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed}
+.auth-msg{font-size:13px;padding:11px 14px;border-radius:var(--r-sm);margin-bottom:14px;display:none;line-height:1.5}
+.auth-msg.err{background:var(--danger-bg);color:var(--danger);display:block}
+.auth-msg.ok{background:var(--green-light);color:var(--green-dark);display:block}
+
+/* ══ APP SHELL ══ */
+#app{position:fixed;inset:0;display:none;flex-direction:column;padding-top:var(--sat);padding-left:var(--sal);padding-right:var(--sar)}
+#app.show{display:flex}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 18px 10px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0}
+.topbar-avatar{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:white;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative}
+.topbar-avatar img{width:100%;height:100%;object-fit:cover}
+.topbar-avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;font-size:16px}
+.topbar-avatar:hover .topbar-avatar-edit{display:flex}
+.topbar-info{flex:1;min-width:0}
+.topbar-greeting{font-size:11px;color:var(--text3);font-weight:400}
+.topbar-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-add{background:var(--green);color:white;border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--t);display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.topbar-add:active{transform:scale(.95)}
+.topbar-add svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2.5}
+
+/* Scrollable content */
+.page-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(72px + var(--sab))}
+
+/* Bottom tab bar */
+.tabbar{position:fixed;bottom:0;left:0;right:0;height:calc(60px + var(--sab));padding-bottom:var(--sab);background:var(--white);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;z-index:100;box-shadow:0 -2px 16px rgba(44,100,70,.06)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:var(--t);padding:4px 0}
+.tab-item svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.8;transition:var(--t)}
+.tab-item span{font-size:10px;color:var(--text3);font-weight:500;transition:var(--t)}
+.tab-item.active svg{stroke:var(--green)}
+.tab-item.active span{color:var(--green);font-weight:600}
+
+/* ══ SECTION PAGES ══ */
+.page{display:none;padding:0}
+.page.active{display:block}
+
+/* ── Home page ── */
+.home-hero{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);padding:22px 20px 32px;margin-bottom:-16px;position:relative;overflow:hidden}
+.home-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:rgba(255,255,255,.08);border-radius:50%}
+.home-hero::after{content:'';position:absolute;bottom:-30px;left:20px;width:90px;height:90px;background:rgba(255,255,255,.05);border-radius:50%}
+.hero-label{font-size:12px;color:rgba(255,255,255,.75);font-weight:500;margin-bottom:6px}
+.hero-amount{font-size:38px;font-weight:700;color:white;line-height:1.1;margin-bottom:4px;letter-spacing:-1px}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.65)}
+.hero-badges{display:flex;gap:8px;margin-top:16px;position:relative;z-index:1}
+.hero-badge{background:rgba(255,255,255,.18);backdrop-filter:blur(8px);border-radius:10px;padding:10px 14px;flex:1}
+.hero-badge-lbl{font-size:10px;color:rgba(255,255,255,.7);margin-bottom:3px}
+.hero-badge-val{font-size:15px;font-weight:700;color:white}
+
+/* Cards */
+.section-pad{padding:20px 16px 0}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:600;color:var(--text)}
+.card-more{font-size:12px;color:var(--green);font-weight:500;background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
+
+/* Progress bars */
+.prog-row{display:grid;grid-template-columns:30px 1fr 48px;align-items:center;gap:10px;margin-bottom:10px}
+.prog-row:last-child{margin-bottom:0}
+.prog-lbl{font-size:11px;color:var(--text2);font-weight:500}
+.prog-track{height:7px;background:var(--bg);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--green-mid));transition:width .8s ease}
+.prog-amt{font-size:11px;color:var(--text);font-weight:600;text-align:right}
+
+/* Goal snapshot */
+.goal-snap{display:flex;flex-direction:column;gap:10px}
+.goal-snap-item{background:var(--bg);border-radius:var(--r-sm);padding:12px}
+.goal-snap-top{display:flex;justify-content:space-between;margin-bottom:8px}
+.goal-snap-name{font-size:13px;font-weight:600;color:var(--text)}
+.goal-snap-pct{font-size:12px;font-weight:600;color:var(--green)}
+.goal-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden}
+.goal-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--green-mid));transition:width .8s ease}
+.goal-amts{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:5px}
+
+/* Transactions */
+.tx-list{display:flex;flex-direction:column;gap:2px}
+.tx-item{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bg)}
+.tx-item:last-child{border-bottom:none}
+.tx-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tx-ico.dep{background:var(--green-light)}
+.tx-ico.wit{background:var(--danger-bg)}
+.tx-nm{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.tx-dt{font-size:11px;color:var(--text3)}
+.tx-am{font-size:14px;font-weight:700;text-align:right}
+.tx-am.dep{color:var(--green-dark)}
+.tx-am.wit{color:var(--danger)}
+
+/* ── Goals page ── */
+.goals-grid{display:flex;flex-direction:column;gap:12px}
+.goal-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;box-shadow:var(--sh)}
+.goal-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.goal-card-emoji{font-size:28px}
+.goal-card-pct{font-size:20px;font-weight:700;color:var(--green)}
+.goal-card-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px}
+.goal-card-sub{font-size:11px;color:var(--text3);margin-bottom:12px}
+.goal-bar{height:8px;background:var(--bg);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.goal-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--green-mid));transition:width .8s ease}
+.goal-card-amts{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:12px}
+.goal-card-amts strong{color:var(--text)}
+.goal-card-btns{display:flex;gap:8px}
+.goal-btn{flex:1;border:1.5px solid var(--border);background:transparent;border-radius:var(--r-sm);padding:9px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;font-family:inherit;transition:var(--t)}
+.goal-btn:active{transform:scale(.96)}
+.goal-btn.add:hover,.goal-btn.add:active{border-color:var(--green);color:var(--green-dark);background:var(--green-light)}
+.goal-btn.del:hover,.goal-btn.del:active{border-color:var(--danger);color:var(--danger);background:var(--danger-bg)}
+
+/* Calc */
+.calc-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
+.calc-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.cfield{display:flex;flex-direction:column;gap:5px}
+.cfield label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.cfield input{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;color:var(--text);background:var(--bg);font-family:inherit;outline:none;transition:var(--t)}
+.cfield input:focus{border-color:var(--green);background:white}
+.calc-result{background:var(--green-light);border-radius:var(--r-sm);padding:14px;margin-top:14px;animation:fadeUp .25s ease}
+.calc-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.cstat-lbl{font-size:10px;color:var(--green-dark);text-transform:uppercase;letter-spacing:.4px}
+.cstat-val{font-size:18px;font-weight:700;color:var(--green-dark);margin-top:2px}
+.calc-bar{height:8px;background:rgba(76,175,130,.2);border-radius:99px;overflow:hidden;margin-bottom:10px}
+.calc-fill{height:100%;border-radius:99px;background:var(--green);transition:width .8s ease}
+.calc-msg{font-size:12px;color:var(--green-dark);line-height:1.5;margin-bottom:10px}
+
+/* ── Transactions page ── */
+.tx-filter{display:flex;gap:8px;padding:16px 16px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tx-filter::-webkit-scrollbar{display:none}
+.fchip{border:1.5px solid var(--border);background:white;border-radius:99px;padding:7px 16px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;font-family:inherit;transition:var(--t);white-space:nowrap;flex-shrink:0}
+.fchip.active{background:var(--green);border-color:var(--green);color:white}
+
+/* ── Settings page ── */
+.settings-list{display:flex;flex-direction:column;gap:3px}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:white;font-size:14px;color:var(--text);border-bottom:1px solid var(--bg)}
+.srow:first-child{border-radius:var(--r) var(--r) 0 0}
+.srow:last-child{border-radius:0 0 var(--r) var(--r);border-bottom:none}
+.srow-lbl{font-weight:500}
+.srow-val{font-size:13px;color:var(--text2)}
+.srow-btn{font-size:13px;color:var(--green);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit}
+.toggle{position:relative;display:inline-block;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:var(--t)}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:var(--t);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.toggle input:checked+.toggle-slider{background:var(--green)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+.settings-section{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:16px 16px 6px}
+.settings-profile{display:flex;align-items:center;gap:14px;background:white;border-radius:var(--r);padding:16px;margin-bottom:3px;cursor:pointer;transition:var(--t)}
+.settings-profile:active{opacity:.8}
+.sp-avatar{width:52px;height:52px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:white;overflow:hidden;flex-shrink:0}
+.sp-avatar img{width:100%;height:100%;object-fit:cover}
+.sp-info{flex:1}
+.sp-name{font-size:15px;font-weight:600;color:var(--text)}
+.sp-email{font-size:12px;color:var(--text3);margin-top:1px}
+.sp-edit{font-size:12px;color:var(--green);margin-top:3px;font-weight:500}
+.income-input{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;font-size:14px;color:var(--text);background:var(--bg);font-family:inherit;outline:none;width:120px;text-align:right;transition:var(--t)}
+.income-input:focus{border-color:var(--green);background:white}
+.danger-row{color:var(--danger)!important}
+.pwa-row{color:var(--green-dark)!important;font-weight:600}
+.pwa-install-btn{background:var(--green-light);color:var(--green-dark);border:none;border-radius:var(--r-sm);padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--t);display:none}
+.pwa-install-btn.show{display:block}
+
+/* ══ MODAL (bottom sheet) ══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:white;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:10px 20px calc(20px + var(--sab));animation:slideUp .28s cubic-bezier(.32,0,.67,0) forwards;max-height:90vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 18px}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px;text-align:center}
+.mfield{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.mfield label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.mfield input,.mfield select,.mfield textarea{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;font-size:15px;color:var(--text);background:var(--bg);font-family:inherit;outline:none;transition:var(--t);width:100%}
+.mfield input:focus,.mfield select:focus{border-color:var(--green);background:white}
+.modal-btn{width:100%;background:var(--green);color:white;border:none;border-radius:var(--r);padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:var(--t);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+.modal-btn:active{transform:scale(.98)}
+.modal-btn:disabled{opacity:.6;cursor:not-allowed}
+.modal-btn-sec{width:100%;background:var(--bg);color:var(--text2);border:none;border-radius:var(--r);padding:13px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px}
+
+/* ══ HELPERS ══ */
+.empty{text-align:center;padding:30px 20px;color:var(--text3);font-size:13px}
+.empty-ico{font-size:36px;margin-bottom:8px}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spinA .7s linear infinite}
+@keyframes spinA{to{transform:rotate(360deg)}}
+.badge{background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+#avatarInput{display:none}
+</style>
+</head>
+<body>
+
+<!-- Loading splash -->
+<div id="loading">
+  <div class="load-icon">
+    <img id="loadIcon" src="" alt="" style="display:none"/>
+    <div class="load-icon-txt" id="loadIconTxt">S</div>
+  </div>
+  <div class="load-name">Savings Money</div>
+  <div class="load-sub">ငွေစု မှတ်တမ်း</div>
+  <div class="load-dots">
+    <div class="load-dot"></div>
+    <div class="load-dot"></div>
+    <div class="load-dot"></div>
+  </div>
+</div>
+
+<!-- Auth (bottom sheet style) -->
+<div id="authScreen">
+  <div class="auth-sheet">
+    <div class="auth-handle"></div>
+    <div class="auth-brand">
+      <div class="auth-brand-icon">
+        <img id="authBrandImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover"/>
+        <div class="auth-brand-icon-txt" id="authBrandTxt">S</div>
+      </div>
+      <span class="auth-brand-name">Savings Money</span>
+    </div>
+    <div id="authMsg" class="auth-msg"></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">ဝင်မည်</button>
+      <button class="auth-tab" onclick="switchTab('reg')">အကောင့်ဖွင့်</button>
+    </div>
+    <div class="auth-field"><label>အီးမေးလ်</label><input type="email" id="aEmail" placeholder="you@example.com" autocomplete="email"/></div>
+    <div class="auth-field"><label>စကားဝှက်</label><input type="password" id="aPass" placeholder="အနည်းဆုံး ၆ လုံး" autocomplete="current-password"/></div>
+    <div class="auth-field" id="aConfirmWrap" style="display:none"><label>စကားဝှက် အတည်ပြု</label><input type="password" id="aConfirm" placeholder="ထပ်ရိုက်ပါ"/></div>
+    <button class="auth-btn" id="aBtn" onclick="doAuth()">ဝင်မည်</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-avatar" id="topAvatar" onclick="document.getElementById('avatarInput').click()">
+      <span id="topAvatarTxt">S</span>
+      <img id="topAvatarImg" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
+      <div class="topbar-avatar-edit">✎</div>
+    </div>
+    <div class="topbar-info">
+      <div class="topbar-greeting" id="topGreeting">မင်္ဂလာပါ</div>
+      <div class="topbar-name" id="topName">—</div>
+    </div>
+    <button class="topbar-add" onclick="openDeposit()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      ငွေထည့်
+    </button>
+  </div>
+
+  <!-- Pages -->
+  <div class="page-scroll">
+    <!-- HOME -->
+    <div class="page active" id="pg-home">
+      <div class="home-hero">
+        <div class="hero-label">စုစုပေါင်း ငွေစု</div>
+        <div class="hero-amount" id="heroAmt">$0.00</div>
+        <div class="hero-sub" id="heroSub">အခုအချိန်ထိ</div>
+        <div class="hero-badges">
+          <div class="hero-badge">
+            <div class="hero-badge-lbl">ဒီလ ထည့်ပြီး</div>
+            <div class="hero-badge-val" id="badgeMonthly">$0</div>
+          </div>
+          <div class="hero-badge">
+            <div class="hero-badge-lbl">ငွေစုနှုန်း</div>
+            <div class="hero-badge-val" id="badgeRate">—</div>
+          </div>
+          <div class="hero-badge">
+            <div class="hero-badge-lbl">ပန်းတိုင် ကျန်</div>
+            <div class="hero-badge-val" id="badgeGoal">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-pad">
+        <!-- Monthly progress -->
+        <div class="card">
+          <div class="card-hd"><span class="card-title">လစဉ် တိုးတက်မှု</span><span class="badge" id="progYear">2026</span></div>
+          <div id="progBars"><div class="empty"><div class="empty-ico">📊</div>မှတ်တမ်း မရှိသေးဘူး</div></div>
+        </div>
+        <!-- Goal snapshot -->
+        <div class="card">
+          <div class="card-hd"><span class="card-title">ပန်းတိုင် အခြေအနေ</span><button class="card-more" onclick="goTab('goals')">အကုန်ကြည့် →</button></div>
+          <div class="goal-snap" id="goalSnap"><div class="empty"><div class="empty-ico">🎯</div>ပန်းတိုင် မရှိသေးဘူး</div></div>
+        </div>
+        <!-- Recent tx -->
+        <div class="card">
+          <div class="card-hd"><span class="card-title">နောက်ဆုံး မှတ်တမ်းများ</span><button class="card-more" onclick="goTab('txns')">အကုန်ကြည့် →</button></div>
+          <div class="tx-list" id="recentTx"><div class="empty"><div class="empty-ico">💸</div>မှတ်တမ်း မရှိသေးဘူး</div></div>
+        </div>
+      </div>
+    </div><!-- /HOME -->
+
+    <!-- GOALS -->
+    <div class="page" id="pg-goals">
+      <div class="section-pad">
+        <!-- Calculator -->
+        <div class="calc-card">
+          <div class="card-hd"><span class="card-title">ပန်းတိုင် တွက်ချက်မှု</span><span class="badge">Live</span></div>
+          <div class="calc-fields">
+            <div class="cfield"><label>ပန်းတိုင် အမည်</label><input type="text" id="cName" placeholder="ဂျပန်ခရီး"/></div>
+            <div class="cfield"><label>ပစ်မှတ် ($)</label><input type="number" id="cTarget" placeholder="5000" min="0"/></div>
+            <div class="cfield"><label>လက်ရှိ ($)</label><input type="number" id="cCurr" placeholder="1000" min="0"/></div>
+            <div class="cfield"><label>တစ်လ ($)</label><input type="number" id="cMonthly" placeholder="300" min="0"/></div>
+          </div>
+          <button class="auth-btn" onclick="runCalc()" style="padding:12px;font-size:14px">တွက်ကြည့်မည် →</button>
+          <div id="calcResult" style="display:none">
+            <div class="calc-result">
+              <div class="calc-stats">
+                <div><div class="cstat-lbl">ကျန်ငွေ</div><div class="cstat-val" id="cRem">—</div></div>
+                <div><div class="cstat-lbl">ကြာမည့်လ</div><div class="cstat-val" id="cMos">—</div></div>
+                <div><div class="cstat-lbl">ပြီးဆုံးမှု</div><div class="cstat-val" id="cPct">—</div></div>
+                <div><div class="cstat-lbl">ပြည့်မည့်ရက်</div><div class="cstat-val" id="cDt">—</div></div>
+              </div>
+              <div class="calc-bar"><div class="calc-fill" id="cFill"></div></div>
+              <div class="calc-msg" id="cMsg"></div>
+              <button class="auth-btn" onclick="addCalcGoal()" style="padding:11px;font-size:13px">ပန်းတိုင်ထဲ ထည့်မည် →</button>
+            </div>
+          </div>
+        </div>
+        <div class="goals-grid" id="goalsGrid"><div class="empty"><div class="empty-ico">🎯</div>ပန်းတိုင် မရှိသေးဘူး</div></div>
+      </div>
+    </div><!-- /GOALS -->
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="pg-txns">
+      <div class="tx-filter">
+        <button class="fchip active" onclick="setFilter('all',this)">အားလုံး</button>
+        <button class="fchip" onclick="setFilter('deposit',this)">ငွေသွင်း</button>
+        <button class="fchip" onclick="setFilter('withdrawal',this)">ငွေထုတ်</button>
+      </div>
+      <div class="section-pad" style="padding-top:4px">
+        <div class="card">
+          <div class="tx-list" id="txFull"><div class="empty"><div class="empty-ico">💸</div>မှတ်တမ်း မရှိသေးဘူး</div></div>
+        </div>
+      </div>
+    </div><!-- /TXNS -->
+
+    <!-- SETTINGS -->
+    <div class="page" id="pg-settings">
+      <div class="section-pad">
+        <!-- Profile -->
+        <div class="settings-section">ကိုယ်ရေး</div>
+        <div class="settings-profile" onclick="document.getElementById('avatarInput').click()">
+          <div class="sp-avatar" id="spAvatar">
+            <span id="spAvatarTxt">S</span>
+            <img id="spAvatarImg" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
+          </div>
+          <div class="sp-info">
+            <div class="sp-name" id="spName">—</div>
+            <div class="sp-email" id="spEmail">—</div>
+            <div class="sp-edit">📷 ပုံ ပြောင်းမည်</div>
+          </div>
+        </div>
+
+        <!-- Income -->
+        <div class="settings-section">ငွေကြေး</div>
+        <div class="settings-list">
+          <div class="srow">
+            <span class="srow-lbl">လဝင်ငွေ ($)</span>
+            <input type="number" class="income-input" id="incomeInput" placeholder="5000" min="0" onchange="saveIncome()"/>
+          </div>
+        </div>
+
+        <!-- App -->
+        <div class="settings-section">App</div>
+        <div class="settings-list">
+          <div class="srow">
+            <span class="srow-lbl pwa-row">📱 Home Screen Install</span>
+            <button class="pwa-install-btn" id="pwaBtn" onclick="installPWA()">Install</button>
+          </div>
+          <div class="srow">
+            <span class="srow-lbl">ပန်းတိုင် သတိပေး</span>
+            <label class="toggle"><input type="checkbox" checked/><div class="toggle-slider"></div></label>
+          </div>
+          <div class="srow">
+            <span class="srow-lbl">လစဉ် အကျဉ်းချုပ်</span>
+            <label class="toggle"><input type="checkbox" checked/><div class="toggle-slider"></div></label>
+          </div>
+        </div>
+
+        <!-- Account -->
+        <div class="settings-section">အကောင့်</div>
+        <div class="settings-list">
+          <div class="srow">
+            <span class="srow-lbl">ထွက်မည်</span>
+            <button class="srow-btn" onclick="doLogout()">Sign Out</button>
+          </div>
+          <div class="srow danger-row" onclick="resetAll()" style="cursor:pointer">
+            <span class="srow-lbl">🗑️ Data အကုန်ဖျက်ပြီး 0 ကနေ စမည်</span>
+            <span style="color:var(--danger);font-size:18px">›</span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /SETTINGS -->
+  </div><!-- /page-scroll -->
+
+  <!-- Bottom tab bar -->
+  <nav class="tabbar">
+    <div class="tab-item active" id="tab-home" onclick="goTab('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span>ပင်မ</span>
+    </div>
+    <div class="tab-item" id="tab-goals" onclick="goTab('goals')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="1"/></svg>
+      <span>ပန်းတိုင်</span>
+    </div>
+    <div class="tab-item" id="tab-txns" onclick="goTab('txns')">
+      <svg viewBox="0 0 24 24"><path d="M17 3L21 7L17 11"/><path d="M3 7H21"/><path d="M7 21L3 17L7 13"/><path d="M21 17H3"/></svg>
+      <span>မှတ်တမ်း</span>
+    </div>
+    <div class="tab-item" id="tab-settings" onclick="goTab('settings')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>ဆက်တင်</span>
+    </div>
+  </nav>
+</div><!-- /app -->
+
+<!-- Deposit modal -->
+<div class="modal-overlay" id="depModal" onclick="closeDeposit(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💰 ငွေ ထည့်မည်</div>
+    <div class="mfield"><label>ပမာဏ ($)</label><input type="number" id="dAmt" placeholder="0.00" min="0" inputmode="decimal"/></div>
+    <div class="mfield"><label>ရက်စွဲ</label><input type="date" id="dDate"/></div>
+    <div class="mfield"><label>ပန်းတိုင် (ရွေးချယ်နိုင်)</label><select id="dGoal"><option value="">— အထွေထွေ ငွေစု —</option></select></div>
+    <div class="mfield"><label>မှတ်ချက်</label><input type="text" id="dNote" placeholder="လစာ၊ ဘောနပ်စ်..."/></div>
+    <button class="modal-btn" id="dBtn" onclick="submitDeposit()">✅ အတည်ပြုမည်</button>
+    <button class="modal-btn-sec" onclick="closeDeposit()">မလုပ်တော့ဘူး</button>
+  </div>
+</div>
+
+<input type="file" id="avatarInput" accept="image/*" onchange="uploadAvatar(event)"/>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:#1A2E25;color:white;font-size:13px;font-weight:500;padding:11px 20px;border-radius:99px;z-index:9999;opacity:0;transition:all .3s ease;white-space:nowrap;max-width:90vw;text-align:center;pointer-events:none"></div>
+
+<script>
+// ════════════════════════
+//  SUPABASE
+// ════════════════════════
+const DB = supabase.createClient(
+  'https://onenfdaddikacglvayvg.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZW5mZGFkZGlrYWNnbHZheXZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NjkwNDEsImV4cCI6MjA4OTA0NTA0MX0.qIOA3WUUUS5pP8R8wF3DjPDyxvzeW6w3ifGOWwT7feI'
+);
+
+// ════════════════════════
+//  STATE
+// ════════════════════════
+let U=null, S={monthly_income:0,total_savings:0}, G=[], T=[], M={};
+let txFilter='all';
+
+// ════════════════════════
+//  UTILITIES
+// ════════════════════════
+const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK=n=>n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+Math.round(n);
+const mKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+const projDate=m=>{if(!m)return'—';const d=new Date();d.setMonth(d.getMonth()+m);return d.toLocaleDateString('my',{month:'short',year:'numeric'})};
+const greet=()=>{const h=new Date().getHours();return h<12?'မင်္ဂလာပါ နံနက်':h<17?'မင်္ဂလာပါ နေ့လည်':'မင်္ဂလာပါ ညနေ'};
+const fmtDate=s=>{
+  try{return new Date(s+'T00:00:00').toLocaleDateString('my',{year:'numeric',month:'long',day:'numeric'})}
+  catch{return s}
+};
+
+// Toast
+let toastT;
+function toast(msg){
+  const el=$('toast');
+  el.textContent=msg;el.style.opacity='1';el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(-50%) translateY(10px)'},3000);
+}
+
+// ════════════════════════
+//  AUTH
+// ════════════════════════
+let authMode='login';
+function switchTab(m){
+  authMode=m;
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(m==='login'&&i===0)||(m==='reg'&&i===1)));
+  $('aConfirmWrap').style.display=m==='reg'?'flex':'none';
+  $('aBtn').textContent=m==='login'?'ဝင်မည်':'အကောင့်ဖွင့်မည်';
+  setMsg('','');
+}
+function setMsg(txt,type){const el=$('authMsg');el.textContent=txt;el.className='auth-msg'+(type?' '+type:'');}
+async function doAuth(){
+  const email=$('aEmail').value.trim(),pass=$('aPass').value,conf=$('aConfirm').value,btn=$('aBtn');
+  setMsg('','');
+  if(!email||!pass){setMsg('အီးမေးလ် နှင့် စကားဝှက် ထည့်ပါ','err');return;}
+  if(authMode==='reg'&&pass!==conf){setMsg('စကားဝှက် မတူဘူး','err');return;}
+  if(pass.length<6){setMsg('စကားဝှက် ၆ လုံးအထက် ဖြစ်ရမည်','err');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  if(authMode==='login'){
+    const{data,error}=await DB.auth.signInWithPassword({email,password:pass});
+    if(error){setMsg(error.message,'err');btn.disabled=false;btn.textContent='ဝင်မည်';return;}
+    await boot(data.user);
+  }else{
+    const{data,error}=await DB.auth.signUp({email,password:pass});
+    if(error){setMsg(error.message,'err');btn.disabled=false;btn.textContent='အကောင့်ဖွင့်မည်';return;}
+    if(data.user&&!data.session){setMsg('အီးမေးလ် စစ်ဆေးပြီး confirm link နှိပ်ပြီးမှ ဝင်ပါ','ok');btn.disabled=false;btn.textContent='အကောင့်ဖွင့်မည်';}
+    else if(data.user){await boot(data.user);}
+  }
+}
+async function doLogout(){
+  await DB.auth.signOut();
+  U=null;G=[];T=[];M=[];S={monthly_income:0,total_savings:0};
+  $('app').classList.remove('show');$('app').style.display='none';
+  $('authScreen').classList.add('show');
+  $('aEmail').value='';$('aPass').value='';
+  $('aBtn').disabled=false;$('aBtn').textContent='ဝင်မည်';
+}
+
+// ════════════════════════
+//  BOOT
+// ════════════════════════
+async function boot(u){
+  U=u;
+  const name=u.email.split('@')[0];
+  $('topGreeting').textContent=greet();
+  $('topName').textContent=name;
+  $('topAvatarTxt').textContent=name[0].toUpperCase();
+  $('spName').textContent=name;
+  $('spEmail').textContent=u.email;
+  $('spAvatarTxt').textContent=name[0].toUpperCase();
+  await Promise.all([loadS(),loadG(),loadT(),loadM()]);
+  await loadAvatar();
+  $('authScreen').classList.remove('show');
+  $('app').style.display='flex';$('app').classList.add('show');
+  renderHome();
+  setTimeout(()=>{$('loading').classList.add('hide');},300);
+}
+
+// ════════════════════════
+//  DATA LOADERS
+// ════════════════════════
+async function loadS(){
+  const{data}=await DB.from('user_settings').select('*').eq('user_id',U.id).single();
+  if(data){S=data;}else{await DB.from('user_settings').insert({user_id:U.id,monthly_income:0,total_savings:0});}
+  const inc=$('incomeInput');if(inc)inc.value=S.monthly_income||'';
+  $('settingsEmail')&&($('settingsEmail').value=U.email);
+}
+async function loadG(){
+  const{data}=await DB.from('goals').select('*').eq('user_id',U.id).order('inserted_at',{ascending:true});
+  G=data||[];
+}
+async function loadT(){
+  const{data}=await DB.from('transactions').select('*').eq('user_id',U.id).order('date',{ascending:false}).order('inserted_at',{ascending:false});
+  T=data||[];
+}
+async function loadM(){
+  const{data}=await DB.from('monthly_deposits').select('*').eq('user_id',U.id);
+  M={};(data||[]).forEach(r=>{M[r.month_key]=r.amount;});
+}
+
+// ════════════════════════
+//  AVATAR
+// ════════════════════════
+async function uploadAvatar(ev){
+  const file=ev.target.files[0];if(!file)return;
+  if(file.size>5*1024*1024){toast('ပုံ 5MB ထက် မကြီးရပါ');return;}
+  toast('ပုံ တင်နေသည်...');
+  const ext=file.name.split('.').pop();
+  const path=`avatars/${U.id}.${ext}`;
+  const{error}=await DB.storage.from('avatars').upload(path,file,{upsert:true});
+  if(error){toast('❌ '+error.message);return;}
+  const{data}=DB.storage.from('avatars').getPublicUrl(path);
+  showAvatar(data.publicUrl+'?t='+Date.now());
+  toast('✅ ပုံ သိမ်းပြီးပါပြီ!');
+}
+function showAvatar(url){
+  [$('topAvatarImg'),$('spAvatarImg')].forEach(img=>{if(img){img.src=url;img.style.display='block';}});
+  [$('topAvatarTxt'),$('spAvatarTxt')].forEach(t=>{if(t)t.style.display='none';});
+  // loading splash
+  const li=$('loadIcon'),lt=$('loadIconTxt');
+  if(li&&lt){li.src=url;li.style.display='block';lt.style.display='none';}
+}
+async function loadAvatar(){
+  for(const ext of['jpg','jpeg','png','webp']){
+    const path=`avatars/${U.id}.${ext}`;
+    const{data}=DB.storage.from('avatars').getPublicUrl(path);
+    try{const r=await fetch(data.publicUrl,{method:'HEAD'});if(r.ok){showAvatar(data.publicUrl+'?t='+Date.now());break;}}catch{}
+  }
+}
+
+// ════════════════════════
+//  NAVIGATION
+// ════════════════════════
+const TABS=['home','goals','txns','settings'];
+function goTab(name){
+  TABS.forEach(t=>{
+    $('pg-'+t)?.classList.toggle('active',t===name);
+    $('tab-'+t)?.classList.toggle('active',t===name);
+  });
+  if(name==='txns')renderTxFull();
+  if(name==='goals')renderGoals();
+}
+
+// ════════════════════════
+//  RENDER HOME
+// ════════════════════════
+function renderHome(){
+  // Hero
+  $('heroAmt').textContent=fmt(S.total_savings||0);
+  const mDep=M[mKey()]||0;
+  $('badgeMonthly').textContent=fmtK(mDep);
+  const inc=S.monthly_income||0;
+  $('badgeRate').textContent=inc>0?Math.round(mDep/inc*100)+'%':'—';
+  if(G.length){const g=G[0];$('badgeGoal').textContent=fmtK(Math.max(0,g.target-g.current));}
+  else $('badgeGoal').textContent='—';
+
+  // Progress bars
+  const entries=Object.entries(M).sort((a,b)=>a[0].localeCompare(b[0]));
+  const pb=$('progBars');
+  if(!entries.length){pb.innerHTML='<div class="empty"><div class="empty-ico">📊</div>မှတ်တမ်း မရှိသေးဘူး</div>';}
+  else{
+    $('progYear').textContent=entries[0][0].split('-')[0];
+    const mx=Math.max(...entries.map(([,v])=>v),1);
+    pb.innerHTML=entries.map(([k,v])=>{
+      const[,m]=k.split('-').map(Number);
+      return`<div class="prog-row"><span class="prog-lbl">${MOS[m-1]}</span><div class="prog-track"><div class="prog-fill" style="width:${Math.round(v/mx*100)}%"></div></div><span class="prog-amt">${fmtK(v)}</span></div>`;
+    }).join('');
+  }
+
+  // Goal snapshot
+  const gs=$('goalSnap');
+  if(!G.length){gs.innerHTML='<div class="empty"><div class="empty-ico">🎯</div>ပန်းတိုင် မရှိသေးဘူး</div>';}
+  else{
+    gs.innerHTML=G.slice(0,3).map(g=>{
+      const pct=Math.min(100,Math.round(g.current/g.target*100));
+      return`<div class="goal-snap-item"><div class="goal-snap-top"><span class="goal-snap-name">${g.emoji} ${g.name}</span><span class="goal-snap-pct">${pct}%</span></div><div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div><div class="goal-amts"><span>${fmt(g.current)} စုပြီး</span><span>ပစ်မှတ်: ${fmt(g.target)}</span></div></div>`;
+    }).join('');
+  }
+
+  // Recent tx (5)
+  renderTxRows($('recentTx'),T.slice(0,5));
+}
+
+// ════════════════════════
+//  RENDER TRANSACTIONS
+// ════════════════════════
+function renderTxRows(el,list){
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-ico">💸</div>မှတ်တမ်း မရှိသေးဘူး</div>';return;}
+  el.innerHTML=list.map(tx=>{
+    const dep=tx.type==='deposit';
+    return`<div class="tx-item">
+      <div class="tx-ico ${dep?'dep':'wit'}">${dep?'↑':'↓'}</div>
+      <div><div class="tx-nm">${tx.note||tx.type}</div><div class="tx-dt">${fmtDate(tx.date)}</div></div>
+      <div class="tx-am ${dep?'dep':'wit'}">${dep?'+':'−'}${fmt(tx.amount)}</div>
+    </div>`;
+  }).join('');
+}
+function setFilter(f,btn){
+  txFilter=f;
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTxFull();
+}
+function renderTxFull(){
+  const list=txFilter==='all'?T:T.filter(t=>t.type===txFilter);
+  renderTxRows($('txFull'),list);
+}
+
+// ════════════════════════
+//  RENDER GOALS
+// ════════════════════════
+function renderGoals(){
+  // Deposit modal dropdown
+  const sel=$('dGoal');
+  if(sel)sel.innerHTML='<option value="">— အထွေထွေ ငွေစု —</option>'+G.map(g=>`<option value="${g.id}">${g.emoji} ${g.name}</option>`).join('');
+  const c=$('goalsGrid');
+  if(!G.length){c.innerHTML='<div class="empty"><div class="empty-ico">🎯</div>ပန်းတိုင် မရှိသေးဘူး<br><small>အပေါ် calculator နှိပ်ပြီး ထည့်ပါ</small></div>';return;}
+  c.innerHTML=G.map(g=>{
+    const pct=Math.min(100,Math.round(g.current/g.target*100));
+    const rem=Math.max(0,g.target-g.current);
+    return`<div class="goal-card">
+      <div class="goal-card-top"><span class="goal-card-emoji">${g.emoji}</span><span class="goal-card-pct">${pct}%</span></div>
+      <div class="goal-card-name">${g.name}</div>
+      <div class="goal-card-sub">${new Date(g.created).toLocaleDateString('my',{month:'short',year:'numeric'})} မှ စတင်</div>
+      <div class="goal-bar"><div class="goal-bar-fill" style="width:${pct}%"></div></div>
+      <div class="goal-card-amts"><span><strong>${fmt(g.current)}</strong> စုပြီး</span><span>${fmt(rem)} ကျန် / <strong>${fmt(g.target)}</strong></span></div>
+      <div class="goal-card-btns">
+        <button class="goal-btn add" onclick="addToGoal('${g.id}')">+ ငွေ ထပ်ထည့်</button>
+        <button class="goal-btn del" onclick="delGoal('${g.id}')">ဖျက်မည်</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════
+//  GOAL CALCULATOR
+// ════════════════════════
+function runCalc(){
+  const target=parseFloat($('cTarget').value)||0,curr=parseFloat($('cCurr').value)||0,mo=parseFloat($('cMonthly').value)||0;
+  if(target<=0){toast('ပစ်မှတ်ပမာဏ ထည့်ပါ');return;}
+  const rem=Math.max(0,target-curr),pct=Math.min(100,Math.round(curr/target*100)),mos=mo>0?Math.ceil(rem/mo):null;
+  $('cRem').textContent=fmt(rem);$('cMos').textContent=mos!==null?mos+' လ':'—';$('cPct').textContent=pct+'%';$('cDt').textContent=projDate(mos);
+  $('cFill').style.width=pct+'%';
+  $('cMsg').textContent=pct>=100?'🎉 ပန်းတိုင် ရောက်ပြီ!':!mo?`${fmt(rem)} ထပ်ထည့်ရမည်`:`တစ်လ ${fmt(mo)} ထည့်ရင် ${mos} လကြာပြီး ${projDate(mos)} တွင် ပြည့်မည်`;
+  $('calcResult').style.display='block';
+}
+async function addCalcGoal(){
+  const name=$('cName').value.trim()||'ပန်းတိုင် အသစ်';
+  const target=parseFloat($('cTarget').value)||0,curr=parseFloat($('cCurr').value)||0;
+  if(target<=0){toast('ပစ်မှတ်ပမာဏ ထည့်ပါ');return;}
+  const EMOJ=['🎯','🏡','✈️','🚗','💻','📚','🏖️','💎','🎸','🌱'];
+  const{data,error}=await DB.from('goals').insert({user_id:U.id,name,emoji:EMOJ[G.length%EMOJ.length],target,current:Math.min(curr,target),created:new Date().toISOString().slice(0,10)}).select().single();
+  if(error){toast('Error: '+error.message);return;}
+  G.push(data);renderGoals();renderHome();
+  $('calcResult').style.display='none';
+  ['cName','cTarget','cCurr','cMonthly'].forEach(id=>$(id).value='');
+  toast('✅ "'+name+'" ထည့်ပြီးပါပြီ!');
+}
+async function addToGoal(gId){
+  const s=prompt('ဒီပန်းတိုင်မှာ ဘယ်လောက် ထပ်ထည့်မလဲ? ($)');
+  if(!s)return;const amt=parseFloat(s);if(isNaN(amt)||amt<=0){toast('ပမာဏ မမှန်ဘူး');return;}
+  const g=G.find(x=>x.id===gId);if(!g)return;
+  const nc=Math.min(g.target,Math.round((g.current+amt)*100)/100);
+  const nt=Math.round(((S.total_savings||0)+amt)*100)/100;
+  const k=mKey(),nm=Math.round(((M[k]||0)+amt)*100)/100;
+  await DB.from('goals').update({current:nc}).eq('id',gId);
+  await DB.from('user_settings').update({total_savings:nt}).eq('user_id',U.id);
+  await DB.from('transactions').insert({user_id:U.id,type:'deposit',amount:amt,note:`"${g.name}" ပန်းတိုင်မှာ ထပ်ထည့်`,date:new Date().toISOString().slice(0,10),goal_id:gId});
+  await DB.from('monthly_deposits').upsert({user_id:U.id,month_key:k,amount:nm},{onConflict:'user_id,month_key'});
+  g.current=nc;S.total_savings=nt;M[k]=nm;await loadT();
+  renderHome();renderGoals();toast('✅ '+fmt(amt)+' ထည့်ပြီးပါပြီ!');
+}
+async function delGoal(gId){
+  if(!confirm('ဒီပန်းတိုင် ဖျက်မည်လား?\n(ငွေပမာဏ မထိခိုက်ဘူး)'))return;
+  await DB.from('goals').delete().eq('id',gId);
+  G=G.filter(g=>g.id!==gId);renderGoals();renderHome();toast('ပန်းတိုင် ဖျက်ပြီး');
+}
+
+// ════════════════════════
+//  DEPOSIT MODAL
+// ════════════════════════
+function openDeposit(){
+  renderGoals();
+  $('dDate').value=new Date().toISOString().slice(0,10);
+  $('depModal').classList.add('open');
+  setTimeout(()=>$('dAmt').focus(),300);
+}
+function closeDeposit(e){
+  if(e&&e.target!==$('depModal'))return;
+  $('depModal').classList.remove('open');
+  $('dAmt').value='';$('dNote').value='';$('dDate').value='';
+}
+async function submitDeposit(){
+  const amt=parseFloat($('dAmt').value),gId=$('dGoal').value||null,note=$('dNote').value.trim()||'ငွေထည့်',date=$('dDate').value||new Date().toISOString().slice(0,10);
+  const btn=$('dBtn');
+  if(isNaN(amt)||amt<=0){toast('ပမာဏ ထည့်ပါ');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> သိမ်းနေသည်...';
+  const amount=Math.round(amt*100)/100;
+  const nt=Math.round(((S.total_savings||0)+amount)*100)/100;
+  const k=mKey(),nm=Math.round(((M[k]||0)+amount)*100)/100;
+  await DB.from('user_settings').update({total_savings:nt}).eq('user_id',U.id);
+  await DB.from('monthly_deposits').upsert({user_id:U.id,month_key:k,amount:nm},{onConflict:'user_id,month_key'});
+  await DB.from('transactions').insert({user_id:U.id,type:'deposit',amount,note,date,goal_id:gId});
+  if(gId){const g=G.find(x=>x.id===gId);if(g){const nc=Math.min(g.target,Math.round((g.current+amount)*100)/100);await DB.from('goals').update({current:nc}).eq('id',gId);g.current=nc;}}
+  S.total_savings=nt;M[k]=nm;await loadT();
+  btn.disabled=false;btn.textContent='✅ အတည်ပြုမည်';
+  closeDeposit();renderHome();toast('✅ '+fmt(amount)+' ထည့်ပြီးပါပြီ!');
+}
+
+// ════════════════════════
+//  SETTINGS
+// ════════════════════════
+async function saveIncome(){
+  const v=parseFloat($('incomeInput').value)||0;
+  await DB.from('user_settings').update({monthly_income:v}).eq('user_id',U.id);
+  S.monthly_income=v;renderHome();toast('✅ သိမ်းပြီးပါပြီ!');
+}
+async function resetAll(){
+  if(!confirm('Data အကုန် ဖျက်မည်လား?\nGoals, မှတ်တမ်း အားလုံး ပျောက်သွားမည်'))return;
+  if(!confirm('နောက်ဆုံးအတည်ပြု — ပြန်မရနိုင်ပါ!'))return;
+  await DB.from('transactions').delete().eq('user_id',U.id);
+  await DB.from('goals').delete().eq('user_id',U.id);
+  await DB.from('monthly_deposits').delete().eq('user_id',U.id);
+  await DB.from('user_settings').update({total_savings:0}).eq('user_id',U.id);
+  G=[];T=[];M={};S.total_savings=0;
+  renderHome();renderGoals();toast('✅ Reset ပြီးပါပြီ!');
+}
+
+// ════════════════════════
+//  PWA
+// ════════════════════════
+let pwaPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();pwaPrompt=e;
+  $('pwaBtn').classList.add('show');
+});
+window.addEventListener('appinstalled',()=>{
+  $('pwaBtn').classList.remove('show');
+  toast('✅ Home Screen မှာ install ပြီးပါပြီ!');
+});
+function installPWA(){
+  if(pwaPrompt){pwaPrompt.prompt();pwaPrompt.userChoice.then(c=>{if(c.outcome==='accepted')toast('📱 Install လုပ်နေသည်...');pwaPrompt=null;});}
+  else toast('Chrome menu (⋮) → Install app (သို့) Add to Home Screen');
+}
+
+// Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(()=>console.log('SW ✅')).catch(e=>console.log('SW:',e));
+}
+
+// ════════════════════════
+//  INIT
+// ════════════════════════
+document.addEventListener('DOMContentLoaded',async()=>{
+  const{data:{session}}=await DB.auth.getSession();
+  if(session?.user){
+    await boot(session.user);
+  }else{
+    $('authScreen').classList.add('show');
+    $('loading').classList.add('hide');
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&$('authScreen').classList.contains('show'))doAuth();
+    if(e.key==='Escape')$('depModal').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
