@@ -1,7 +1,7 @@
 // Verdant — Service Worker
 // App ကို offline မှာပါ အလုပ်လုပ်အောင် cache လုပ်ပေးသည်
 const CACHE = 'verdant-v2';
-const FILES = ['./verdant-mm.html','./manifest.json','./icon-192.png','./icon-512.png'];
+const FILES = ['./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
